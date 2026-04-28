@@ -106,9 +106,26 @@
       color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
+  /*
+   * Smooth language transitions — fade out → React troca conteúdo → fade in.
+   * Aplicado por LanguageProvider (src/lib/i18n.tsx) via classList.add()
+   * por ~360ms total. Evita o "salto" brusco quando os textos mudam de idioma.
+   *
+   * - body fica com opacity 0.55 enquanto a classe está presente
+   * - pointer-events: none previne cliques duplos durante a transição
+   * - O <body> tem transition base ativa pra animar opacity em ambas as direções
+   * - Toolbar (header) também transita pra ficar coerente com o body
+   */
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html.lang-transitioning body {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .font-serif {

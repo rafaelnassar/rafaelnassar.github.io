@@ -1,18 +1,21 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { durations, easings } from "@/lib/motion";
+import { iconButtonClassName } from "@/components/shared/iconButtonStyles";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
-import { cn, focusRing } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 /**
  * Toggle PT ⇄ EN. Posicionado ao lado do ThemeToggle.
  *
- * UX:
- * - Mostra a sigla do idioma ALVO (não atual) — quando tá em PT, mostra "EN"
- *   pra indicar que clicar muda pra inglês. Padrão de toggles.
- * - Animação cross-fade espelha o ThemeToggle pra coerência visual.
- * - Não quebra layout: mesmo box que o ThemeToggle (h-9, padding lateral
- *   curto pra acomodar 2 letras).
+ * Mesma silhueta do ThemeToggle pra paridade visual:
+ * - iconButtonClassName('outline', 'sm') = p-2 rounded-full (32×32 visual)
+ * - Texto envolvido em <span className="w-4 h-4 ..."> ocupa exatamente o
+ *   mesmo footprint dos ícones Lucide Sun/Moon (16×16 within the padding)
+ * - Cross-fade vertical (y: 8 → 0 → -8) idêntico ao ThemeToggle
+ *
+ * Mostra a sigla do idioma ALVO (não atual) — quando tá em PT, mostra "EN"
+ * pra indicar que clicar muda pra inglês.
  */
 export const LanguageToggle = () => {
   const { lang, setLang } = useLang();
@@ -24,13 +27,7 @@ export const LanguageToggle = () => {
     <motion.button
       onClick={() => setLang(target)}
       type="button"
-      className={cn(
-        "relative inline-flex items-center justify-center px-2.5 h-9 rounded-full",
-        "border border-border hover:border-foreground/30 hover:bg-secondary",
-        "transition-colors duration-200 overflow-hidden",
-        "text-xs font-semibold tracking-wider",
-        focusRing
-      )}
+      className={cn(iconButtonClassName("outline", "sm"), "relative overflow-hidden")}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       aria-label={
@@ -44,7 +41,7 @@ export const LanguageToggle = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -8, opacity: 0 }}
           transition={{ duration: durations.short, ease: easings.smooth }}
-          className="block"
+          className="flex items-center justify-center w-4 h-4 text-[11px] font-bold leading-none tracking-tight"
         >
           {targetLabel}
         </motion.span>
