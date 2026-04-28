@@ -3,8 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { iconButtonClassName } from "@/components/shared/iconButtonStyles";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/i18n";
+import { t } from "@/data/translations";
 
 export const BackToTop = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export const BackToTop = () => {
             iconButtonClassName("solid", "lg"),
             "fixed bottom-6 right-6 z-40 shadow-lg"
           )}
-          aria-label="Voltar ao topo"
+          aria-label={tx.nav.backToTop}
         >
           <ArrowUp size={20} aria-hidden />
         </motion.button>

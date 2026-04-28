@@ -1,52 +1,61 @@
 /**
- * Stack técnica — single source of truth.
+ * Stack técnica — fonte única bilíngue.
  *
- * Consumido por:
- *   - src/components/Technologies.tsx (seção do portfolio com cards)
- *   - src/pages/CV.tsx (lista compacta na página /cv que vira PDF)
- *
- * IMPORTANTE: o componente Technologies precisa importar o ícone Lucide
- * correspondente a cada categoria. Como tipos de função não serializam bem
- * em "data only", o ícone é resolvido por nome aqui (string) e mapeado lá.
+ * - category, description: traduzidas
+ * - iconName, items (nomes de tecnologia): invariáveis
  */
 
 export interface TechCategory {
-  category: string;
-  /** Nome do ícone Lucide React (case-sensitive) — ex: "Server", "Layout" */
+  category: { pt: string; en: string };
   iconName: "Server" | "Layout" | "Smartphone" | "Database" | "Cloud";
-  description: string;
+  description: { pt: string; en: string };
   items: string[];
 }
 
 export const stack: TechCategory[] = [
   {
-    category: "Back-End",
+    category: { pt: "Back-End", en: "Back-End" },
     iconName: "Server",
-    description: "APIs, integrações e sistemas legados",
+    description: {
+      pt: "APIs, integrações e sistemas legados",
+      en: "APIs, integrations and legacy systems",
+    },
     items: ["Node.js", "AdonisJS", "PHP", "Laravel", "Delphi"],
   },
   {
-    category: "Front-End",
+    category: { pt: "Front-End", en: "Front-End" },
     iconName: "Layout",
-    description: "Interfaces modernas e performáticas",
+    description: {
+      pt: "Interfaces modernas e performáticas",
+      en: "Modern, performant interfaces",
+    },
     items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind"],
   },
   {
-    category: "Mobile",
+    category: { pt: "Mobile", en: "Mobile" },
     iconName: "Smartphone",
-    description: "Apps nativos multiplataforma",
+    description: {
+      pt: "Apps nativos multiplataforma",
+      en: "Cross-platform native apps",
+    },
     items: ["React Native", "Expo"],
   },
   {
-    category: "Bancos & Cache",
+    category: { pt: "Bancos & Cache", en: "Databases & Cache" },
     iconName: "Database",
-    description: "Persistência relacional e dados em memória",
+    description: {
+      pt: "Persistência relacional e dados em memória",
+      en: "Relational persistence and in-memory data",
+    },
     items: ["PostgreSQL", "MySQL", "MariaDB", "Redis"],
   },
   {
-    category: "DevOps & Infra",
+    category: { pt: "DevOps & Infra", en: "DevOps & Infra" },
     iconName: "Cloud",
-    description: "Deploy, observabilidade e administração de servidores",
+    description: {
+      pt: "Deploy, observabilidade e administração de servidores",
+      en: "Deployment, observability and server administration",
+    },
     items: [
       "Docker",
       "AWS",

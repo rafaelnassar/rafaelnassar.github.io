@@ -5,6 +5,8 @@ import { Card } from '@/components/shared/Card'
 import { TagPillList } from '@/components/shared/TagPill'
 import { IconBadge } from '@/components/shared/IconBadge'
 import { stack, type TechCategory } from '@/data/technologies'
+import { useLang } from '@/lib/i18n'
+import { t } from '@/data/translations'
 
 /*
  * Mapa nome-da-categoria → ícone Lucide. Mantido aqui (no componente) porque
@@ -20,27 +22,30 @@ const iconMap: Record<TechCategory['iconName'], LucideIcon> = {
 }
 
 export const Technologies = () => {
+  const { lang } = useLang()
+  const tx = t(lang)
+
   return (
     <section id="tecnologias" aria-labelledby="tecnologias-title" className="py-20 sm:py-24">
       <div className="container mx-auto px-6">
         <SectionHeading
           id="tecnologias-title"
-          title="Stack"
-          italic="técnica"
-          subtitle="Ferramentas que uso no dia a dia para entregar do legado ao moderno"
+          title={tx.technologies.title}
+          italic={tx.technologies.italic}
+          subtitle={tx.technologies.subtitle}
         />
 
         <div className="max-w-3xl mx-auto grid gap-4">
           {stack.map((category, index) => (
-            <Reveal key={category.category} delay={index * 0.05}>
+            <Reveal key={category.category[lang]} delay={index * 0.05}>
               <Card>
                 <div className="flex items-start gap-4">
                   <IconBadge icon={iconMap[category.iconName]} />
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-base sm:text-lg">{category.category}</h3>
+                    <h3 className="font-medium text-base sm:text-lg">{category.category[lang]}</h3>
                     <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
-                      {category.description}
+                      {category.description[lang]}
                     </p>
 
                     <TagPillList tags={category.items} className="mt-3" />

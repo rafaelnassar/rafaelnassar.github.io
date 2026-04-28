@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { cn, focusRing } from "@/lib/utils";
+import { useLang } from "@/lib/i18n";
+import { t, translateTag, type Translations } from "@/data/translations";
 
 /* Single source of truth: src/data/* alimenta tanto este CV quanto os
  * componentes do portfolio em src/components/. Editar dados em um lugar
@@ -11,23 +14,35 @@ import { projects } from "@/data/projects";
 import { clients } from "@/data/clients";
 import { stack } from "@/data/technologies";
 import { certifications } from "@/data/certifications";
+import type { Lang } from "@/lib/i18n";
 
 /**
- * Currículo gerado a partir da mesma fonte de verdade do portfolio.
+ * Currículo — bilingue (PT/EN), gerado a partir da mesma fonte do portfolio.
  *
  * Arquitetura tipo "document viewer" (Google Docs / Notion):
  * - Chrome (wrap + toolbar) respeita o tema do site (light/dark)
  * - Documento <article> sempre branco com texto preto (é "folha de papel")
  * - Em print, @media print força tudo branco
  *
- * Pra geração do PDF estático, o headless Chrome usa
- * --force-prefers-color-scheme=light (em scripts/build-cv.mjs), garantindo
- * que o site renderize em light antes de imprimir → wrap fica light, doc
- * fica branco, PDF sai consistente.
+ * Pra geração do PDF estático, scripts/build-cv.mjs usa:
+ * - ?theme=light forçando light no script inline do index.html
+ * - ?lang=pt|en pra escolher idioma do CV
+ * Resultado: curriculo.pdf (PT) e curriculo-en.pdf (EN), ambos com fundo
+ * branco mesmo se o dev rodar com dark mode + en/pt como default.
  */
 
 /** Extrai display curto de uma URL completa (ex: "github.com/rafaelnassar/securevault") */
 const stripProtocol = (url: string) => url.replace(/^https?:\/\//, "");
+
+const PDF_FOR_LANG: Record<Lang, string> = {
+  pt: "/curriculo.pdf",
+  en: "/curriculo-en.pdf",
+};
+
+const PDF_FILENAME_FOR_LANG: Record<Lang, string> = {
+  pt: "rafael-nassar-curriculo.pdf",
+  en: "rafael-nassar-resume.pdf",
+};
 
 /*
  * Estratégia de paginação:
@@ -74,9 +89,7 @@ const cvStyles = `
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  /* Items individuais não quebram no meio; seções podem quebrar entre items */
   .cv-item { page-break-inside: avoid; break-inside: avoid; }
-  /* Headings de seção não ficam isolados no fim da página */
   .cv-document h2 { break-after: avoid; page-break-after: avoid; }
 }
 
@@ -187,24 +200,32 @@ const cvStyles = `
 /*
  * Mobile (< 640px) NÃO tem layout dedicado nesta página: o botão
  * "Currículo" no Hero detecta viewport pequeno e dispara download
- * direto do PDF (em vez de navegar para /cv). Tablets ≥ 640px e
- * desktop continuam abrindo /cv normalmente, com folha A4 em
- * proporção real e legível.
+ * direto do PDF. Tablets ≥ 640px e desktop abrem /cv normalmente.
  */
 `;
 
-const Header = () => (
+// ──────────────────────────────────────────────────────────────────────────
+// Sub-componentes — todos recebem `lang` e `tx` via props pra evitar múltiplas
+// chamadas a useLang() (single render → single tradução)
+// ──────────────────────────────────────────────────────────────────────────
+
+interface SectionProps {
+  lang: Lang;
+  tx: Translations;
+}
+
+const PageHeader = ({ lang, tx }: SectionProps) => (
   <header>
     <h1>Rafael Nassar</h1>
-    <p className="role">Software Engineer</p>
+    <p className="role">{tx.cv.headerRole}</p>
     <div className="meta-line mt-3 flex flex-wrap gap-x-2 gap-y-1">
-      <span>Cuiabá, MT</span>
+      <span>{lang === "pt" ? "Cuiabá, MT" : "Cuiabá, MT, Brazil"}</span>
       <span style={{ color: "#CBD5E1" }}>·</span>
       <span>+55 65 98134-2422</span>
       <span style={{ color: "#CBD5E1" }}>·</span>
       <a href="mailto:adm.rafaelnassar@gmail.com">adm.rafaelnassar@gmail.com</a>
       <span style={{ color: "#CBD5E1" }}>·</span>
-      <a href="https://rafaelnassar.dev">rafaelnassar.dev</a>
+      <a href="https://rafaelnassar.github.io">rafaelnassar.github.io</a>
       <span style={{ color: "#CBD5E1" }}>·</span>
       <a href="https://github.com/rafaelnassar">github.com/rafaelnassar</a>
       <span style={{ color: "#CBD5E1" }}>·</span>
@@ -215,41 +236,39 @@ const Header = () => (
   </header>
 );
 
-const Profile = () => (
+const Profile = ({ tx }: SectionProps) => (
   <section className="cv-item">
-    <h2>Perfil</h2>
+    <h2>{tx.cv.profile}</h2>
     <p className="desc" style={{ marginTop: 0 }}>
-      Apps web, mobile e SaaS que resolvem problemas reais — do zero ou integrando com
-      sistemas legados. Desde 2019 construo soluções para força de venda, controle
-      financeiro, emissão fiscal (NFCe, NFe, MDFe), dashboards internos, automações e
-      integrações corporativas. Trabalho do Delphi às stacks modernas em React, Next.js
-      e React Native, com APIs em Node.js, AdonisJS e PHP/Laravel.
+      {tx.cv.profileText}
     </p>
   </section>
 );
 
-const Experience = () => (
+const ExperienceSection = ({ lang, tx }: SectionProps) => (
   <section>
-    <h2>Experiência</h2>
+    <h2>{tx.cv.section_experience}</h2>
     <div className="space-y-3">
       {experiences.map((exp) => (
-        <div key={`${exp.title}-${exp.period}`} className="cv-item">
+        <div key={`${exp.company}-${exp.period[lang]}`} className="cv-item">
           <div className="flex items-baseline justify-between gap-3">
             <div className="role-line">
-              <span style={{ fontWeight: 500 }}>{exp.title}</span>
+              <span style={{ fontWeight: 500 }}>{exp.title[lang]}</span>
               <span className="sep">·</span>
               <span className="company">{exp.company}</span>
               <span className="sep">·</span>
-              <span style={{ color: "#94A3B8", fontSize: "9pt" }}>{exp.location}</span>
+              <span style={{ color: "#94A3B8", fontSize: "9pt" }}>
+                {exp.location[lang]}
+              </span>
             </div>
-            <span className="period">{exp.period}</span>
+            <span className="period">{exp.period[lang]}</span>
           </div>
-          <p className="desc">{exp.description}</p>
+          <p className="desc">{exp.description[lang]}</p>
           <p className="tags">
-            {exp.tags.map((t, i) => (
-              <span key={t}>
+            {exp.tags.map((tag, i) => (
+              <span key={tag}>
                 {i > 0 && <span className="tag-sep">·</span>}
-                {t}
+                {translateTag(tag, lang)}
               </span>
             ))}
           </p>
@@ -259,9 +278,9 @@ const Experience = () => (
   </section>
 );
 
-const Projects = () => (
+const ProjectsSection = ({ lang, tx }: SectionProps) => (
   <section>
-    <h2>Projetos selecionados</h2>
+    <h2>{tx.cv.section_projects}</h2>
     <div className="space-y-2.5">
       {projects.map((p) => (
         <div key={p.title} className="cv-item">
@@ -276,7 +295,7 @@ const Projects = () => (
                   color: "#94A3B8",
                 }}
               >
-                — {p.status}
+                — {p.status[lang]}
               </span>
             )}
             {p.internal && (
@@ -288,7 +307,7 @@ const Projects = () => (
                   color: "#94A3B8",
                 }}
               >
-                — sob NDA
+                — {tx.cv.statusUnderNda}
               </span>
             )}
             {p.githubUrl && (
@@ -297,12 +316,12 @@ const Projects = () => (
               </span>
             )}
           </div>
-          <p className="desc">{p.description}</p>
+          <p className="desc">{p.description[lang]}</p>
           <p className="tags">
-            {p.technologies.map((t, i) => (
-              <span key={t}>
+            {p.technologies.map((tag, i) => (
+              <span key={tag}>
                 {i > 0 && <span className="tag-sep">·</span>}
-                {t}
+                {tag}
               </span>
             ))}
           </p>
@@ -312,9 +331,9 @@ const Projects = () => (
   </section>
 );
 
-const Clients = () => (
+const ClientsSection = ({ tx }: SectionProps) => (
   <section className="cv-item">
-    <h2>Clientes</h2>
+    <h2>{tx.cv.section_clients}</h2>
     <p className="desc" style={{ marginTop: 0 }}>
       {clients.map((c, i) => (
         <span key={c.name}>
@@ -327,13 +346,13 @@ const Clients = () => (
   </section>
 );
 
-const Stack = () => (
+const StackSection = ({ lang, tx }: SectionProps) => (
   <section className="cv-item">
-    <h2>Stack técnica</h2>
+    <h2>{tx.cv.section_stack}</h2>
     <div className="space-y-1">
       {stack.map((s) => (
-        <div key={s.category} className="stack-row">
-          <span className="stack-cat">{s.category}</span>
+        <div key={s.category[lang]} className="stack-row">
+          <span className="stack-cat">{s.category[lang]}</span>
           <span className="stack-items">{s.items.join(" · ")}</span>
         </div>
       ))}
@@ -341,9 +360,9 @@ const Stack = () => (
   </section>
 );
 
-const Certifications = () => (
+const CertificationsSection = ({ tx }: SectionProps) => (
   <section className="cv-item">
-    <h2>Certificações</h2>
+    <h2>{tx.cv.section_certs}</h2>
     <div className="cert-grid">
       {certifications.map((c) => (
         <div key={c.name} className="cert-item">
@@ -358,43 +377,47 @@ const Certifications = () => (
   </section>
 );
 
-const Footer = () => (
+const FooterSection = ({ tx }: SectionProps) => (
   <div className="footer-grid mt-3">
     <section className="cv-item">
-      <h2>Formação</h2>
+      <h2>{tx.cv.section_education}</h2>
       <div style={{ fontSize: "9.5pt" }}>
         <div style={{ fontWeight: 500, color: "#0F1424" }}>
-          CST em Análise e Desenvolvimento de Sistemas
+          {tx.cv.eduDegree}
         </div>
-        <div className="cert-meta">UNIASSELVI · Várzea Grande, MT</div>
-        <div className="cert-meta">Jul 2025 — Ago 2027 (em andamento)</div>
+        <div className="cert-meta">{tx.cv.eduSchool}</div>
+        <div className="cert-meta">{tx.cv.eduPeriod}</div>
       </div>
     </section>
     <section className="cv-item">
-      <h2>Idiomas</h2>
+      <h2>{tx.cv.section_languages}</h2>
       <p style={{ fontSize: "9.5pt", color: "#334155" }}>
-        Português (nativo) <span className="tag-sep">·</span> Inglês (intermediário)
+        {tx.cv.langPt} <span className="tag-sep">·</span> {tx.cv.langEn}
       </p>
     </section>
   </div>
 );
 
+// ──────────────────────────────────────────────────────────────────────────
+// Página
+// ──────────────────────────────────────────────────────────────────────────
+
 export default function CV() {
+  const { lang } = useLang();
+  const tx = t(lang);
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: cvStyles }} />
 
       {/*
         Wrap: respeita o tema do site (bg-secondary/30 funciona em light e dark).
-        - light: cream sutil envolvendo o documento branco
-        - dark: dark navy envolvendo o documento branco (efeito "PDF preview")
-        Em print, @media print força wrap branco. Pra geração do PDF, o
-        headless Chrome usa --force-prefers-color-scheme=light (já configurado
-        em scripts/build-cv.mjs) → wrap renderiza em light.
+        Em print, @media print força wrap branco. Pro PDF gerado, o headless
+        Chrome usa ?theme=light pra forçar light antes do React montar.
       */}
       <div className="cv-page-wrap min-h-screen py-8 bg-secondary/30">
         <div className="cv-toolbar mx-auto mb-6 flex items-center justify-between gap-3 px-6 max-w-[210mm]">
-          {/* "Voltar" — link ghost com tokens do tema (mesmo padrão dos nav links do Header) */}
+          {/* "Voltar / Back" — link ghost com tokens do tema */}
           <Link
             to="/"
             className={cn(
@@ -407,23 +430,28 @@ export default function CV() {
               className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5"
               aria-hidden
             />
-            Voltar ao portfolio
+            {tx.cv.backToPortfolio}
           </Link>
 
-          {/* "Baixar PDF" — Button shadcn (mesmo padrão do "Contato" do Header) */}
-          <Button size="sm" asChild>
-            <a href="/curriculo.pdf" download="rafael-nassar-cv.pdf">
-              <Download aria-hidden />
-              Baixar PDF
-            </a>
-          </Button>
+          {/* LanguageToggle + Baixar PDF — empilhados no canto direito */}
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <Button size="sm" asChild>
+              <a
+                href={PDF_FOR_LANG[lang]}
+                download={PDF_FILENAME_FOR_LANG[lang]}
+              >
+                <Download aria-hidden />
+                {tx.cv.downloadPdf}
+              </a>
+            </Button>
+          </div>
         </div>
 
         {/*
           Documento — folha de papel, SEMPRE branca com texto preto.
           - bg-white fixo (independe de tema, é representação de papel real)
-          - Sombra adaptativa (mais discreta em light, mais marcada em dark
-            pra destacar a folha contra o fundo dark)
+          - Sombra adaptativa (mais discreta em light, mais marcada em dark)
         */}
         <article
           className="cv-document mx-auto bg-white shadow-[0_4px_24px_rgba(15,20,36,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)]"
@@ -435,14 +463,14 @@ export default function CV() {
             borderRadius: "2px",
           }}
         >
-          <Header />
-          <Profile />
-          <Experience />
-          <Projects />
-          <Clients />
-          <Stack />
-          <Certifications />
-          <Footer />
+          <PageHeader lang={lang} tx={tx} />
+          <Profile lang={lang} tx={tx} />
+          <ExperienceSection lang={lang} tx={tx} />
+          <ProjectsSection lang={lang} tx={tx} />
+          <ClientsSection lang={lang} tx={tx} />
+          <StackSection lang={lang} tx={tx} />
+          <CertificationsSection lang={lang} tx={tx} />
+          <FooterSection lang={lang} tx={tx} />
         </article>
       </div>
     </>

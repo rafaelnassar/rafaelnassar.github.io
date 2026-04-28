@@ -11,8 +11,12 @@ import { OutlineLink } from '@/components/shared/OutlineLink'
 import { iconButtonClassName } from '@/components/shared/iconButtonStyles'
 import { cn, focusRing } from '@/lib/utils'
 import { clients } from '@/data/clients'
+import { useLang } from '@/lib/i18n'
+import { t } from '@/data/translations'
 
 export const Clients = () => {
+  const { lang } = useLang()
+  const tx = t(lang)
   const sectionRef = useRef<HTMLElement>(null)
   // Pausa autoplay quando seção sai de viewport (economia de timer + sem rebobinar enquanto fora da tela)
   const isInView = useInView(sectionRef, { margin: '-30% 0px' })
@@ -82,9 +86,9 @@ export const Clients = () => {
       <div className="container mx-auto px-6">
         <SectionHeading
           id="clientes-title"
-          title="Clientes"
-          italic="& parceiros"
-          subtitle="Empresas que confiaram seus sites institucionais a mim"
+          title={tx.clients.title}
+          italic={tx.clients.italic}
+          subtitle={tx.clients.subtitle}
         />
 
         <div className="max-w-3xl mx-auto relative">
@@ -97,7 +101,7 @@ export const Clients = () => {
                   iconButtonClassName('outline', 'md'),
                   'absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-6 z-10 bg-background shadow-sm'
                 )}
-                aria-label="Cliente anterior"
+                aria-label={tx.clients.prevAria}
               >
                 <ChevronLeft className="w-4 h-4" aria-hidden />
               </button>
@@ -109,7 +113,7 @@ export const Clients = () => {
                   iconButtonClassName('outline', 'md'),
                   'absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-6 z-10 bg-background shadow-sm'
                 )}
-                aria-label="Próximo cliente"
+                aria-label={tx.clients.nextAria}
               >
                 <ChevronRight className="w-4 h-4" aria-hidden />
               </button>
@@ -157,7 +161,7 @@ export const Clients = () => {
                           </div>
                           {client.description && (
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              {client.description}
+                              {client.description[lang]}
                             </p>
                           )}
                         </div>
@@ -177,7 +181,7 @@ export const Clients = () => {
                             // alinhado na base, mantendo grid visual uniforme.
                             className="self-start mt-auto"
                           >
-                            Ver projeto
+                            {tx.clients.seeProject}
                             <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
                           </OutlineLink>
                         )}
@@ -200,7 +204,7 @@ export const Clients = () => {
                   key={index}
                   onClick={() => scrollTo(index)}
                   className={cn('p-2 group rounded-full', focusRing)}
-                  aria-label={`Ir para cliente ${index + 1}`}
+                  aria-label={`${tx.clients.goToAria} ${index + 1}`}
                   aria-current={index === selectedIndex}
                 >
                   <span

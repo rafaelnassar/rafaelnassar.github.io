@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 /**
- * Gera public/curriculo.pdf a partir da rota /cv via Chrome headless.
+ * Gera 2 PDFs do currículo (PT + EN) a partir da rota /cv via Chrome headless.
+ *
+ * Saída:
+ *   public/curriculo.pdf      (português)
+ *   public/curriculo-en.pdf   (inglês)
  *
  * Fluxo:
  *  1. Localiza o binário do Chrome (Win/Mac/Linux) ou usa $CHROME_PATH
  *  2. Build do projeto com Vite (se ainda não houver `dist/`)
  *  3. Sobe `vite preview` em porta livre como subprocess
  *  4. Aguarda servidor responder 200 em /cv
- *  5. Roda Chrome headless com --print-to-pdf, gera curriculo.pdf
+ *  5. Roda Chrome headless 1x por idioma com --print-to-pdf
  *  6. Mata o subprocess do preview
  *
  * Uso:
- *   bun run cv:build       # build + preview + headless + PDF
+ *   bun run cv:build       # build + preview + headless + 2 PDFs
  *   CHROME_PATH=... bun run cv:build  # custom Chrome
  */
 
@@ -24,13 +28,28 @@ import { setTimeout as sleep } from "node:timers/promises";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "..");
 const PUBLIC_DIR = resolve(PROJECT_ROOT, "public");
-const PDF_PATH = resolve(PUBLIC_DIR, "curriculo.pdf");
-const PORT = 4181; // porta dedicada — evita colisão com preview manual
-// ?theme=light força light mode antes do React montar (lido pelo script inline
-// do index.html). Garante que o PDF gerado tenha fundo branco/claro mesmo se o
-// runner ou OS tiver dark mode ativo — a flag --force-prefers-color-scheme=light
-// do Chrome sozinha é ignorada pelo headless=new (bug conhecido).
-const CV_URL = `http://localhost:${PORT}/cv?theme=light`;
+const PORT = 4181;
+
+/**
+ * Configuração dos PDFs a gerar. Cada entrada produz um PDF distinto.
+ * - ?theme=light força light mode antes do React montar (lido pelo script
+ *   inline do index.html). Garante fundo branco mesmo se o dev rodar com
+ *   dark mode ativo. A flag --force-prefers-color-scheme=light do Chrome
+ *   sozinha é ignorada pelo headless=new (bug conhecido).
+ * - ?lang=pt|en seleciona o idioma do CV.
+ */
+const TARGETS = [
+  {
+    label: "PT",
+    output: resolve(PUBLIC_DIR, "curriculo.pdf"),
+    url: `http://localhost:${PORT}/cv?theme=light&lang=pt`,
+  },
+  {
+    label: "EN",
+    output: resolve(PUBLIC_DIR, "curriculo-en.pdf"),
+    url: `http://localhost:${PORT}/cv?theme=light&lang=en`,
+  },
+];
 
 // ────────────────────────────────────────────────────────────────────────
 // 1. Locate Chrome
@@ -97,7 +116,6 @@ const preview = spawn(
   { cwd: PROJECT_ROOT, shell: true, stdio: ["ignore", "pipe", "pipe"] }
 );
 
-// Cleanup garantido em qualquer exit path
 const killPreview = () => {
   if (preview.pid && !preview.killed) {
     try {
@@ -125,7 +143,7 @@ const waitForServer = async () => {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(CV_URL);
+      const res = await fetch(`http://localhost:${PORT}/cv`);
       if (res.ok) return true;
     } catch {
       /* retry */
@@ -144,60 +162,58 @@ if (!ready) {
 console.log("→ Preview pronto");
 
 // ────────────────────────────────────────────────────────────────────────
-// 5. Chrome headless → PDF
+// 5. Chrome headless → 1 PDF por idioma
 // ────────────────────────────────────────────────────────────────────────
 
 if (!existsSync(PUBLIC_DIR)) mkdirSync(PUBLIC_DIR, { recursive: true });
 
-console.log("→ Renderizando PDF (10s para hidratação React + Google Fonts)...");
-const chromeArgs = [
-  "--headless=new",
-  "--disable-gpu",
-  "--no-pdf-header-footer",
-  // Força light mode no nível do Chrome (proteção em camadas — o /cv também
-  // remove `class="dark"` no useEffect, mas a flag aqui garante que mesmo
-  // se algum token dependente de tema escapar, o resultado fica claro).
-  "--force-prefers-color-scheme=light",
-  "--virtual-time-budget=10000",
-  "--run-all-compositor-stages-before-draw",
-  "--hide-scrollbars",
-  `--print-to-pdf=${PDF_PATH}`,
-  CV_URL,
-];
+const buildOne = (target) => {
+  console.log(`→ Renderizando ${target.label} → ${target.output}`);
+  const chromeArgs = [
+    "--headless=new",
+    "--disable-gpu",
+    "--no-pdf-header-footer",
+    "--force-prefers-color-scheme=light",
+    "--virtual-time-budget=10000",
+    "--run-all-compositor-stages-before-draw",
+    "--hide-scrollbars",
+    `--print-to-pdf=${target.output}`,
+    target.url,
+  ];
 
-const chrome = spawnSync(chromePath, chromeArgs, {
-  cwd: PROJECT_ROOT,
-  stdio: ["ignore", "pipe", "pipe"],
-});
+  const chrome = spawnSync(chromePath, chromeArgs, {
+    cwd: PROJECT_ROOT,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  if (chrome.status !== 0) {
+    console.error(`✗ Chrome falhou (${target.label}):`);
+    console.error(chrome.stderr?.toString());
+    return false;
+  }
+
+  if (!existsSync(target.output)) {
+    console.error(`✗ PDF ${target.label} não foi gerado`);
+    return false;
+  }
+
+  const { size } = statSync(target.output);
+  if (size < 5_000) {
+    console.error(
+      `✗ PDF ${target.label} muito pequeno (${(size / 1024).toFixed(1)} KB) — provavelmente vazio.`
+    );
+    return false;
+  }
+
+  console.log(`  ✓ ${(size / 1024).toFixed(1)} KB`);
+  return true;
+};
+
+const allOk = TARGETS.every(buildOne);
 
 killPreview();
 
-if (chrome.status !== 0) {
-  console.error("✗ Chrome falhou:");
-  console.error(chrome.stderr?.toString());
-  process.exit(chrome.status ?? 1);
-}
+if (!allOk) process.exit(1);
 
-// ────────────────────────────────────────────────────────────────────────
-// 6. Relatório
-// ────────────────────────────────────────────────────────────────────────
-
-if (!existsSync(PDF_PATH)) {
-  console.error("✗ PDF não foi gerado");
-  process.exit(1);
-}
-
-const { size } = statSync(PDF_PATH);
-const sizeKb = (size / 1024).toFixed(1);
-
-if (size < 5_000) {
-  console.error(
-    `✗ PDF muito pequeno (${sizeKb} KB) — provavelmente vazio. ` +
-      `Veja se o vite preview está servindo /cv corretamente.`
-  );
-  process.exit(1);
-}
-
-console.log(`✓ ${PDF_PATH}`);
-console.log(`  ${sizeKb} KB`);
+console.log(`✓ ${TARGETS.length} PDFs gerados em public/`);
 process.exit(0);

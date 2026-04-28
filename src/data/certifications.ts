@@ -1,9 +1,8 @@
 /**
- * Certificações — single source of truth.
+ * Certificações — fonte única bilíngue.
  *
- * Consumido por:
- *   - src/components/Certifications.tsx (cards do portfolio com link)
- *   - src/pages/CV.tsx (grid 2-col na página /cv que vira PDF)
+ * - skills: tradução PT/EN (áreas de conhecimento)
+ * - name, issuer, date, credentialId, credentialUrl: invariáveis
  */
 
 export interface Certification {
@@ -12,8 +11,7 @@ export interface Certification {
   date: string;
   credentialId: string;
   credentialUrl: string;
-  /** Áreas de conhecimento exibidas como TagPill no portfolio */
-  skills: string[];
+  skills: { pt: string[]; en: string[] };
 }
 
 export const certifications: Certification[] = [
@@ -23,7 +21,10 @@ export const certifications: Certification[] = [
     date: "Jul 2025",
     credentialId: "b7d48257ff3f",
     credentialUrl: "https://www.hackerrank.com/certificates/b7d48257ff3f",
-    skills: ["Programação", "REST APIs", "Microsserviços"],
+    skills: {
+      pt: ["Programação", "REST APIs", "Microsserviços"],
+      en: ["Programming", "REST APIs", "Microservices"],
+    },
   },
   {
     name: "Frontend Developer (React)",
@@ -31,7 +32,10 @@ export const certifications: Certification[] = [
     date: "Jul 2025",
     credentialId: "7f8179cc42b0",
     credentialUrl: "https://www.hackerrank.com/certificates/7f8179cc42b0",
-    skills: ["React", "Programação", "Microsserviços"],
+    skills: {
+      pt: ["React", "Programação", "Microsserviços"],
+      en: ["React", "Programming", "Microservices"],
+    },
   },
   {
     name: "Node.js (Intermediate)",
@@ -39,7 +43,10 @@ export const certifications: Certification[] = [
     date: "Jul 2025",
     credentialId: "0e79a25ccb1e",
     credentialUrl: "https://www.hackerrank.com/certificates/0e79a25ccb1e",
-    skills: ["Node.js", "REST APIs", "Microsserviços"],
+    skills: {
+      pt: ["Node.js", "REST APIs", "Microsserviços"],
+      en: ["Node.js", "REST APIs", "Microservices"],
+    },
   },
   {
     name: "JavaScript (Intermediate)",
@@ -47,7 +54,10 @@ export const certifications: Certification[] = [
     date: "Jul 2025",
     credentialId: "958393477e7d",
     credentialUrl: "https://www.hackerrank.com/certificates/958393477e7d",
-    skills: ["JavaScript", "Programação"],
+    skills: {
+      pt: ["JavaScript", "Programação"],
+      en: ["JavaScript", "Programming"],
+    },
   },
   {
     name: "SQL (Advanced)",
@@ -55,7 +65,10 @@ export const certifications: Certification[] = [
     date: "Jul 2025",
     credentialId: "daa603456405",
     credentialUrl: "https://www.hackerrank.com/certificates/daa603456405",
-    skills: ["SQL", "Banco de dados", "REST APIs"],
+    skills: {
+      pt: ["SQL", "Banco de dados", "REST APIs"],
+      en: ["SQL", "Databases", "REST APIs"],
+    },
   },
   {
     name: "Java (Basic)",
@@ -63,6 +76,9 @@ export const certifications: Certification[] = [
     date: "Jul 2025",
     credentialId: "1a0e10ba8e0d",
     credentialUrl: "https://www.hackerrank.com/certificates/1a0e10ba8e0d",
-    skills: ["Java", "Programação"],
+    skills: {
+      pt: ["Java", "Programação"],
+      en: ["Java", "Programming"],
+    },
   },
 ];

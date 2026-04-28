@@ -6,16 +6,21 @@ import { TagPillList } from '@/components/shared/TagPill'
 import { IconBadge } from '@/components/shared/IconBadge'
 import { OutlineLink } from '@/components/shared/OutlineLink'
 import { certifications } from '@/data/certifications'
+import { useLang } from '@/lib/i18n'
+import { t } from '@/data/translations'
 
 export const Certifications = () => {
+  const { lang } = useLang()
+  const tx = t(lang)
+
   return (
     <section id="certificacoes" aria-labelledby="certificacoes-title" className="py-20 sm:py-24">
       <div className="container mx-auto px-6">
         <SectionHeading
           id="certificacoes-title"
-          title="Certificações"
-          italic="verificadas"
-          subtitle="Credenciais validadas e disponíveis para consulta"
+          title={tx.certifications.title}
+          italic={tx.certifications.italic}
+          subtitle={tx.certifications.subtitle}
         />
 
         <div className="max-w-3xl mx-auto grid gap-4">
@@ -31,17 +36,17 @@ export const Certifications = () => {
                       {cert.issuer} · {cert.date}
                     </p>
 
-                    <TagPillList tags={cert.skills} className="mt-3" />
+                    <TagPillList tags={cert.skills[lang]} className="mt-3" />
 
                     <OutlineLink
                       href={cert.credentialUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Ver credencial de ${cert.name} no HackerRank`}
+                      aria-label={`${tx.certifications.credentialAria} ${cert.name} ${tx.certifications.credentialAriaSuffix}`}
                       size="sm"
                       className="mt-4"
                     >
-                      Ver credencial
+                      {tx.certifications.seeCredential}
                       <ExternalLink className="w-3.5 h-3.5" aria-hidden />
                     </OutlineLink>
                   </div>

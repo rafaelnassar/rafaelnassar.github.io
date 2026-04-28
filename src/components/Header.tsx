@@ -3,23 +3,43 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { Brand } from "@/components/shared/Brand";
 import { springs } from "@/lib/motion";
 import { cn, focusRing } from "@/lib/utils";
-
-const navLinks = [
-  { name: "Sobre", href: "#sobre", id: "sobre" },
-  { name: "Experiência", href: "#experiencia", id: "experiencia" },
-  { name: "Projetos", href: "#projetos", id: "projetos" },
-  { name: "Clientes", href: "#clientes", id: "clientes" },
-  { name: "Stack", href: "#tecnologias", id: "tecnologias" },
-  { name: "Certificações", href: "#certificacoes", id: "certificacoes" },
-  { name: "Contato", href: "#contato", id: "contato" },
-];
+import { useLang } from "@/lib/i18n";
+import { t } from "@/data/translations";
 
 const SCROLL_OFFSET = 80;
 
+// IDs e hrefs são fixos (não dependem de idioma) — evita re-execução do
+// useEffect do IntersectionObserver quando o usuário troca de idioma.
+const NAV_SECTION_IDS = [
+  "sobre",
+  "experiencia",
+  "projetos",
+  "clientes",
+  "tecnologias",
+  "certificacoes",
+  "contato",
+] as const;
+
 export const Header = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
+
+  // navLinks dependem de lang (textos traduzidos). IDs e hrefs são fixos
+  // pra não quebrar deep-links e ancoragem por seção.
+  const navLinks = [
+    { name: tx.nav.about, href: "#sobre", id: "sobre" },
+    { name: tx.nav.experience, href: "#experiencia", id: "experiencia" },
+    { name: tx.nav.projects, href: "#projetos", id: "projetos" },
+    { name: tx.nav.clients, href: "#clientes", id: "clientes" },
+    { name: tx.nav.stack, href: "#tecnologias", id: "tecnologias" },
+    { name: tx.nav.certifications, href: "#certificacoes", id: "certificacoes" },
+    { name: tx.nav.contact, href: "#contato", id: "contato" },
+  ];
+
   const [isScrolled, setIsScrolled] = useState(
     () => typeof window !== "undefined" && window.scrollY > 20
   );
@@ -34,7 +54,7 @@ export const Header = () => {
   // Listener único de scroll: atualiza isScrolled + edge cases (topo/fim da página).
   // O destaque por seção visível é responsabilidade do IntersectionObserver abaixo.
   useEffect(() => {
-    const sectionIds = navLinks.map((link) => link.id);
+    const sectionIds = NAV_SECTION_IDS;
     const sections = sectionIds
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
@@ -190,7 +210,7 @@ export const Header = () => {
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
         <motion.a
           href="#"
-          title="Voltar ao topo"
+          title={tx.nav.backToTop}
           className={cn("cursor-pointer rounded-md", focusRing)}
           whileHover={{ opacity: 0.7 }}
           transition={{ duration: 0.2 }}
@@ -205,7 +225,7 @@ export const Header = () => {
 
         <nav
           ref={navRef}
-          aria-label="Navegação principal"
+          aria-label={tx.nav.primaryNav}
           className="hidden lg:flex items-center gap-1 bg-secondary/50 backdrop-blur-sm rounded-full px-1.5 py-1.5 relative"
         >
           {activeSection && (
@@ -248,6 +268,7 @@ export const Header = () => {
         </nav>
 
         <div className="hidden lg:flex items-center gap-3">
+          <LanguageToggle />
           <ThemeToggle />
           <Button size="sm" asChild>
             <a
@@ -255,12 +276,13 @@ export const Header = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Contato
+              {tx.nav.headerCta}
             </a>
           </Button>
         </div>
 
         <div className="lg:hidden flex items-center gap-2">
+          <LanguageToggle />
           <ThemeToggle />
           <button
             ref={menuButtonRef}
@@ -270,7 +292,7 @@ export const Header = () => {
               "p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors",
               focusRing
             )}
-            aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-label={isMobileMenuOpen ? tx.nav.menuClose : tx.nav.menuOpen}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-nav"
           >
@@ -286,7 +308,7 @@ export const Header = () => {
             ref={mobileNavRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Menu de navegação"
+            aria-label={tx.nav.menuLabel}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -300,7 +322,7 @@ export const Header = () => {
             }}
           >
             <nav
-              aria-label="Navegação móvel"
+              aria-label={tx.nav.mobileNav}
               className="container mx-auto px-6 py-4 flex flex-col gap-1"
             >
               {navLinks.map((link) => (
@@ -330,7 +352,7 @@ export const Header = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Conectar no LinkedIn
+                    {tx.nav.headerCtaMobile}
                   </a>
                 </Button>
               </div>

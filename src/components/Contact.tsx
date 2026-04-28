@@ -2,43 +2,46 @@ import { MessageCircle, Github, Linkedin, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { cn, focusRing } from "@/lib/utils";
-
-const whatsappMessage = encodeURIComponent(
-  "Olá Rafael! Encontrei seu portfólio e gostaria de conversar sobre uma possível oportunidade. Podemos agendar um bate-papo?"
-);
-
-const links = [
-  {
-    icon: MessageCircle,
-    label: "WhatsApp",
-    handle: "Fale comigo",
-    href: `https://wa.me/5565981342422?text=${whatsappMessage}`,
-    highlight: true,
-  },
-  {
-    icon: Linkedin,
-    label: "LinkedIn",
-    handle: "rafael-nassar",
-    href: "https://www.linkedin.com/in/rafael-nassar-2a3637287",
-  },
-  {
-    icon: Github,
-    label: "GitHub",
-    handle: "rafaelnassar",
-    href: "https://github.com/rafaelnassar",
-  },
-];
+import { useLang } from "@/lib/i18n";
+import { t } from "@/data/translations";
 
 export const Contact = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
+
+  const whatsappMessage = encodeURIComponent(tx.contact.whatsappMessage);
+
+  const links = [
+    {
+      icon: MessageCircle,
+      label: "WhatsApp",
+      handle: tx.contact.whatsappHandle,
+      href: `https://wa.me/5565981342422?text=${whatsappMessage}`,
+      highlight: true,
+    },
+    {
+      icon: Linkedin,
+      label: "LinkedIn",
+      handle: "rafael-nassar",
+      href: "https://www.linkedin.com/in/rafael-nassar-2a3637287",
+    },
+    {
+      icon: Github,
+      label: "GitHub",
+      handle: "rafaelnassar",
+      href: "https://github.com/rafaelnassar",
+    },
+  ];
+
   return (
     <section id="contato" aria-labelledby="contato-title" className="py-20 sm:py-24">
       <div className="container mx-auto px-6">
         <div className="max-w-2xl mx-auto">
           <SectionHeading
             id="contato-title"
-            title="Vamos"
-            italic="conversar?"
-            subtitle="Aberto a novas oportunidades"
+            title={tx.contact.title}
+            italic={tx.contact.italic}
+            subtitle={tx.contact.subtitle}
           />
 
           <Reveal delay={0.05} className="space-y-4 max-w-md mx-auto">

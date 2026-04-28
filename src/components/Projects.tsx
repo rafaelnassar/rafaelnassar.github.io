@@ -6,16 +6,21 @@ import { TagPill, TagPillList } from '@/components/shared/TagPill'
 import { OutlineLink } from '@/components/shared/OutlineLink'
 import { cn, focusRing } from '@/lib/utils'
 import { projects } from '@/data/projects'
+import { useLang } from '@/lib/i18n'
+import { t } from '@/data/translations'
 
 export const Projects = () => {
+  const { lang } = useLang()
+  const tx = t(lang)
+
   return (
     <section id="projetos" aria-labelledby="projetos-title" className="py-20 sm:py-24">
       <div className="container mx-auto px-6">
         <SectionHeading
           id="projetos-title"
-          title="Projetos"
-          italic="selecionados"
-          subtitle="Produtos que construí — públicos e internos"
+          title={tx.projects.title}
+          italic={tx.projects.italic}
+          subtitle={tx.projects.subtitle}
         />
 
         <div className="max-w-3xl mx-auto space-y-4">
@@ -32,7 +37,7 @@ export const Projects = () => {
                     <h3 className="font-medium text-base sm:text-lg">{project.title}</h3>
                     {project.status && (
                       <TagPill variant={project.featured ? 'onDark' : 'default'}>
-                        {project.status}
+                        {project.status[lang]}
                       </TagPill>
                     )}
                   </div>
@@ -42,7 +47,7 @@ export const Projects = () => {
                       project.featured ? 'opacity-80' : 'text-muted-foreground'
                     )}
                   >
-                    {project.description}
+                    {project.description[lang]}
                   </p>
                 </div>
 
@@ -54,7 +59,7 @@ export const Projects = () => {
                 {project.internal ? (
                   <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
                     <Lock aria-hidden className="w-3.5 h-3.5" />
-                    Projeto interno · sob NDA
+                    {tx.projects.internal}
                   </div>
                 ) : (project.githubUrl || project.liveUrl) ? (
                   <div className="flex flex-wrap items-center gap-2 pt-2">
@@ -63,7 +68,7 @@ export const Projects = () => {
                         href={project.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Código de ${project.title} no GitHub`}
+                        aria-label={`${tx.projects.codeAria} ${project.title} ${tx.projects.codeAriaSuffix}`}
                         className={cn(
                           'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
                           focusRing,
@@ -73,7 +78,7 @@ export const Projects = () => {
                         )}
                       >
                         <Github className="w-4 h-4" aria-hidden />
-                        Código
+                        {tx.projects.code}
                       </a>
                     )}
                     {project.liveUrl && (
@@ -81,7 +86,7 @@ export const Projects = () => {
                         href={project.liveUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Ver ${project.title} ao vivo`}
+                        aria-label={`${tx.projects.liveAria} ${project.title} ${tx.projects.liveAriaSuffix}`}
                         className={cn(
                           'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
                           focusRing,
@@ -91,7 +96,7 @@ export const Projects = () => {
                         )}
                       >
                         <ExternalLink className="w-4 h-4" aria-hidden />
-                        Ver site
+                        {tx.projects.seeLive}
                       </a>
                     )}
                   </div>
@@ -107,7 +112,7 @@ export const Projects = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Ver todos os projetos
+            {tx.projects.seeAll}
             <ArrowUpRight className="w-4 h-4" aria-hidden />
           </OutlineLink>
         </Reveal>

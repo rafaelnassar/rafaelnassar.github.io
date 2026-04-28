@@ -8,6 +8,8 @@ import { Technologies } from "@/components/Technologies";
 import { Certifications } from "@/components/Certifications";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
+import { useLang } from "@/lib/i18n";
+import { t } from "@/data/translations";
 
 const Clients = lazy(() =>
   import("@/components/Clients").then((m) => ({ default: m.Clients }))
@@ -17,6 +19,9 @@ const BackToTop = lazy(() =>
 );
 
 const Index = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Skip link: oculto até receber foco via teclado (WCAG 2.4.1) */}
@@ -24,7 +29,7 @@ const Index = () => {
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:bg-foreground focus:text-background focus:text-sm focus:font-medium focus:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        Pular para o conteúdo
+        {tx.nav.skipLink}
       </a>
       <Header />
       <main id="conteudo">

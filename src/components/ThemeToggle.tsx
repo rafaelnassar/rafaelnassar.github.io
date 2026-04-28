@@ -4,8 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { durations, easings } from "@/lib/motion";
 import { iconButtonClassName } from "@/components/shared/iconButtonStyles";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/i18n";
+import { t } from "@/data/translations";
 
 export const ThemeToggle = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
@@ -52,7 +56,7 @@ export const ThemeToggle = () => {
       )}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+      aria-label={isDark ? tx.toggle.themeLight : tx.toggle.themeDark}
     >
       {/* Cross-fade + sutil rotação — mais elegante que rotação pura */}
       <AnimatePresence mode="wait" initial={false}>
