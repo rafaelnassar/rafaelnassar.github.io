@@ -80,6 +80,14 @@
     <script>
       (function () {
         try {
+          // ?theme=light força light mode antes do React montar — usado pelo
+          // script de geração do PDF (scripts/build-cv.mjs) pra garantir que
+          // o headless Chrome renderize com fundo claro independente das
+          // preferências de sistema. Tem precedência sobre localStorage e
+          // prefers-color-scheme.
+          var url = new URL(window.location.href);
+          if (url.searchParams.get('theme') === 'light') return;
+
           var saved = localStorage.getItem('theme');
           var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           if (saved === 'dark' || (!saved && prefersDark)) {

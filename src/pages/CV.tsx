@@ -1,7 +1,7 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { cn, focusRing } from "@/lib/utils";
 
 /* Single source of truth: src/data/* alimenta tanto este CV quanto os
  * componentes do portfolio em src/components/. Editar dados em um lugar
@@ -15,11 +15,15 @@ import { certifications } from "@/data/certifications";
 /**
  * Currículo gerado a partir da mesma fonte de verdade do portfolio.
  *
- * - Layout A4 (210mm × 297mm) com margens internas 14mm × 12mm
- * - Tipografia: Inter (sans) + Instrument Serif italic (accent), idênticas ao site
- * - Paleta independente de tema (light fixo) para garantir impressão correta
- * - Estilos @media print injetados inline neste arquivo (escopo local)
- * - Dois CTAs no header (não impressos): voltar ao portfolio e baixar PDF
+ * Arquitetura tipo "document viewer" (Google Docs / Notion):
+ * - Chrome (wrap + toolbar) respeita o tema do site (light/dark)
+ * - Documento <article> sempre branco com texto preto (é "folha de papel")
+ * - Em print, @media print força tudo branco
+ *
+ * Pra geração do PDF estático, o headless Chrome usa
+ * --force-prefers-color-scheme=light (em scripts/build-cv.mjs), garantindo
+ * que o site renderize em light antes de imprimir → wrap fica light, doc
+ * fica branco, PDF sai consistente.
  */
 
 /** Extrai display curto de uma URL completa (ex: "github.com/rafaelnassar/securevault") */
@@ -376,49 +380,28 @@ const Footer = () => (
 );
 
 export default function CV() {
-  /*
-   * A página /cv força light mode e usa cores fixas (não tokens do tema):
-   *
-   * 1. Garante PDF gerado pelo headless Chrome com fundo branco/claro fixo,
-   *    independente do localStorage.theme do desenvolvedor que rodar o build.
-   * 2. Remove a possibilidade do `bg-background` (token responsivo ao tema)
-   *    resolver pra navy escuro durante a renderização — foi exatamente esse
-   *    bug que gerou as bordas pretas nas tentativas anteriores.
-   * 3. Mantém leitura consistente: o currículo é sempre uma "folha de papel"
-   *    clara, mesmo que o usuário esteja navegando o resto do site em dark.
-   *
-   * O effect remove a class `dark` ao montar e restaura ao desmontar — assim
-   * o tema escolhido pelo usuário no portfolio principal é preservado quando
-   * ele clica "Voltar".
-   */
-  useEffect(() => {
-    const html = document.documentElement;
-    const wasDark = html.classList.contains("dark");
-    if (wasDark) html.classList.remove("dark");
-    return () => {
-      if (wasDark) html.classList.add("dark");
-    };
-  }, []);
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: cvStyles }} />
 
-      {/* Wrap "papel ao redor da folha" — cinza claro fixo, nunca dark */}
-      <div
-        className="cv-page-wrap min-h-screen py-8"
-        style={{ background: "#F1F2F5" }}
-      >
+      {/*
+        Wrap: respeita o tema do site (bg-secondary/30 funciona em light e dark).
+        - light: cream sutil envolvendo o documento branco
+        - dark: dark navy envolvendo o documento branco (efeito "PDF preview")
+        Em print, @media print força wrap branco. Pra geração do PDF, o
+        headless Chrome usa --force-prefers-color-scheme=light (já configurado
+        em scripts/build-cv.mjs) → wrap renderiza em light.
+      */}
+      <div className="cv-page-wrap min-h-screen py-8 bg-secondary/30">
         <div className="cv-toolbar mx-auto mb-6 flex items-center justify-between gap-3 px-6 max-w-[210mm]">
-          {/* "Voltar" — link ghost com cores fixas legíveis sobre cinza claro */}
+          {/* "Voltar" — link ghost com tokens do tema (mesmo padrão dos nav links do Header) */}
           <Link
             to="/"
             className={cn(
               "group inline-flex items-center gap-2 text-sm rounded-full px-3 py-1.5 transition-colors",
-              "text-[#475569] hover:text-[#0F1424]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5EA8] focus-visible:ring-offset-2"
+              "text-muted-foreground hover:text-foreground",
+              focusRing
             )}
-            style={{ ["--tw-ring-offset-color" as string]: "#F1F2F5" }}
           >
             <ArrowLeft
               className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5"
@@ -427,37 +410,28 @@ export default function CV() {
             Voltar ao portfolio
           </Link>
 
-          {/*
-            "Baixar PDF" — replica o look do Button shadcn (size sm, pill,
-            sólido) com cores fixas pra não depender do tema do site.
-            O PDF é gerado por `bun run cv:build` em /public/curriculo.pdf.
-          */}
-          <a
-            href="/curriculo.pdf"
-            download="rafael-nassar-cv.pdf"
-            className={cn(
-              "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium h-9 px-4 transition-all duration-200",
-              "bg-[#0F1424] text-white hover:opacity-90",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5EA8] focus-visible:ring-offset-2",
-              "[&_svg]:size-4 [&_svg]:shrink-0"
-            )}
-            style={{ ["--tw-ring-offset-color" as string]: "#F1F2F5" }}
-          >
-            <Download aria-hidden />
-            Baixar PDF
-          </a>
+          {/* "Baixar PDF" — Button shadcn (mesmo padrão do "Contato" do Header) */}
+          <Button size="sm" asChild>
+            <a href="/curriculo.pdf" download="rafael-nassar-cv.pdf">
+              <Download aria-hidden />
+              Baixar PDF
+            </a>
+          </Button>
         </div>
 
-        {/* Documento — sempre branco com texto escuro fixo, A4 (210mm) */}
+        {/*
+          Documento — folha de papel, SEMPRE branca com texto preto.
+          - bg-white fixo (independe de tema, é representação de papel real)
+          - Sombra adaptativa (mais discreta em light, mais marcada em dark
+            pra destacar a folha contra o fundo dark)
+        */}
         <article
-          className="cv-document mx-auto"
+          className="cv-document mx-auto bg-white shadow-[0_4px_24px_rgba(15,20,36,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)]"
           style={{
-            background: "#FFFFFF",
             width: "210mm",
             minHeight: "297mm",
             maxWidth: "210mm",
             padding: "12mm 14mm",
-            boxShadow: "0 4px 24px rgba(15, 20, 36, 0.08)",
             borderRadius: "2px",
           }}
         >

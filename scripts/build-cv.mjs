@@ -26,7 +26,11 @@ const PROJECT_ROOT = resolve(__dirname, "..");
 const PUBLIC_DIR = resolve(PROJECT_ROOT, "public");
 const PDF_PATH = resolve(PUBLIC_DIR, "curriculo.pdf");
 const PORT = 4181; // porta dedicada — evita colisão com preview manual
-const CV_URL = `http://localhost:${PORT}/cv`;
+// ?theme=light força light mode antes do React montar (lido pelo script inline
+// do index.html). Garante que o PDF gerado tenha fundo branco/claro mesmo se o
+// runner ou OS tiver dark mode ativo — a flag --force-prefers-color-scheme=light
+// do Chrome sozinha é ignorada pelo headless=new (bug conhecido).
+const CV_URL = `http://localhost:${PORT}/cv?theme=light`;
 
 // ────────────────────────────────────────────────────────────────────────
 // 1. Locate Chrome
