@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1d24"/>
+      <stop offset="1" stop-color="#0f1115"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.85" cy="0.15" r="0.6">
+      <stop offset="0" stop-color="#5b8def" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#5b8def" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.1" cy="0.95" r="0.5">
+      <stop offset="0" stop-color="#5b8def" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#5b8def" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- Badge "Disponível para projetos" -->
+  <g transform="translate(80, 80)">
+    <circle cx="6" cy="6" r="6" fill="#22c55e"/>
+    <text x="22" y="11" font-family="Inter, sans-serif" font-size="16" font-weight="500" fill="#a8b1bf" letter-spacing="0.3">
+      Disponível para projetos
+    </text>
+  </g>
+
+  <!-- Nome + cargo + pitch -->
+  <g transform="translate(80, 230)">
+    <text font-family="Inter, sans-serif" font-size="104" font-weight="500" fill="#ebeae6" letter-spacing="-3">
+      Rafael Nassar
+    </text>
+    <text y="100" font-family="Instrument Serif, Georgia, serif" font-style="italic" font-size="56" fill="#7d8694" letter-spacing="-1">
+      Software Engineer
+    </text>
+    <text y="180" font-family="Inter, sans-serif" font-size="26" font-weight="400" fill="#9aa3b1" letter-spacing="-0.3">
+      Apps web, mobile e SaaS — do zero ou integrando com sistemas legados.
+    </text>
+    <text y="218" font-family="Inter, sans-serif" font-size="22" font-weight="400" fill="#7d8694" letter-spacing="-0.2">
+      Emissão fiscal · Força de venda · Dashboards · Automações
+    </text>
+  </g>
+
+  <!-- Logo + URL -->
+  <g transform="translate(80, 540)">
+    <text font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#ebeae6" letter-spacing="-0.2">
+      <tspan font-family="Instrument Serif, Georgia, serif" font-style="italic" font-weight="400">rafael</tspan><tspan font-weight="600">nassar</tspan><tspan fill="#5b8def">.</tspan>
+    </text>
+    <text x="0" y="32" font-family="Inter, sans-serif" font-size="16" fill="#7d8694">
+      rafaelnassar.dev
+    </text>
+  </g>
+
+  <!-- CTA pill "Vamos conversar?" -->
+  <g transform="translate(900, 480)" opacity="0.9">
+    <rect x="-2" y="0" width="220" height="80" rx="40" fill="#ebeae6"/>
+    <text x="108" y="51" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#0f1115" text-anchor="middle">
+      Vamos conversar?
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,73 @@
+# Deploy do portfolio para GitHub Pages.
+#
+# Pré-requisitos no repositório (configurar UMA vez):
+#   1. Settings → Pages → Source: "GitHub Actions"
+#   2. Repositório precisa se chamar `rafaelnassar.github.io` (User Page)
+#      ou qualquer nome se for Project Page (mas aí URL fica /<repo>/)
+#
+# Trigger: push na branch main, ou manual via "Run workflow".
+# Saída:   site publicado em https://rafaelnassar.github.io
+#
+# O CV em PDF (public/curriculo.pdf) é commitado já gerado — este workflow
+# NÃO regera o PDF (precisaria de Chrome no runner). Quando o conteúdo do
+# CV mudar, rode `bun run cv:build` localmente e commite o PDF atualizado.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permissões mínimas para o action de Pages publicar
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Garante que apenas 1 deploy roda por vez (cancela em-andamento se novo push)
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type-check
+        run: bunx tsc --noEmit
+
+      - name: Build
+        run: bun run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
