@@ -144,13 +144,20 @@ export const Hero = () => {
         </motion.div>
       </motion.div>
 
+      {/*
+        Scroll indicator — visível em todos os viewports.
+        Em mobile faz ainda mais sentido: a Hero ocupa 100svh e o user
+        precisa do affordance pra entender que existe conteúdo abaixo.
+        bottom-6 em mobile (mais próximo da borda da tela curta) e
+        bottom-8 em sm+ (mais respiração no desktop).
+      */}
       <motion.a
         href="#sobre"
         initial={{ opacity: 0 }}
         animate={{ opacity: isHeroInView ? 1 : 0 }}
         transition={{ duration: durations.long, delay: 0.6, ease: easings.smooth }}
         className={cn(
-          "absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 text-foreground/70 hover:text-foreground transition-colors group cursor-pointer rounded-md",
+          "absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-foreground/70 hover:text-foreground transition-colors group cursor-pointer rounded-md",
           focusRing
         )}
         aria-label={tx.hero.scrollNext}
