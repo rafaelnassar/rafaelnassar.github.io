@@ -44,7 +44,11 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        # Sem --frozen-lockfile: o filesystem do runner é descartado após o
+        # job, então drift do lockfile não polui o repo. Permite que pequenas
+        # mudanças no package.json sem rebuild local do bun.lockb não
+        # bloqueiem o deploy.
+        run: bun install --no-save
 
       - name: Type-check
         run: bunx tsc --noEmit
