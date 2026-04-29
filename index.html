@@ -157,17 +157,37 @@
     </script>
 
     <!--
-      Analytics (escolha 1 e descomente):
+      Analytics: Cloudflare Web Analytics
+      - Privacy-first: zero cookies, zero PII, GDPR/LGPD compliant
+      - 100% gratuito, sem free trial / sem cap de pageviews
+      - Não precisa migrar DNS nem usar CF como CDN — funciona em qualquer site
 
-      Plausible (privacy-first, $9/mês):
-      <script defer data-domain="rafaelnassar.dev" src="https://plausible.io/js/script.js"></script>
+      Setup (~3 min):
+        1. Criar conta gratuita em https://dash.cloudflare.com
+        2. Sidebar → Analytics & Logs → Web Analytics → Add a site
+        3. Colar https://rafaelnassar.github.io e finalizar
+        4. Copiar o "token" mostrado e substituir YOUR_CLOUDFLARE_TOKEN abaixo
 
-      Umami (self-hosted, gratuito):
-      <script defer src="https://your-umami-instance.com/script.js" data-website-id="YOUR_ID"></script>
+      Enquanto o token estiver com o placeholder padrão, o snippet abaixo
+      é inerte: não faz nenhum request externo, não polui devtools, não
+      impacta CWV. Após substituir, ativa automaticamente.
 
-      Vercel Analytics (gratuito se hospedar no Vercel):
-      `bun add @vercel/analytics` e importar <Analytics /> no App.tsx
+      Alternativas (se preferir):
+        - Plausible (pago $9/mês, dashboard mais bonito):
+          <script defer data-domain="rafaelnassar.github.io" src="https://plausible.io/js/script.js"></script>
+        - Umami self-hosted ou Umami Cloud (free tier 10k events/mês)
     -->
+    <script>
+      (function () {
+        var token = "YOUR_CLOUDFLARE_TOKEN";
+        if (!token || token === "YOUR_CLOUDFLARE_TOKEN") return;
+        var s = document.createElement("script");
+        s.defer = true;
+        s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+        s.setAttribute("data-cf-beacon", JSON.stringify({ token: token }));
+        document.head.appendChild(s);
+      })();
+    </script>
   </head>
 
   <body>
