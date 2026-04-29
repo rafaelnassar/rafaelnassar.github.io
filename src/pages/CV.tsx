@@ -229,8 +229,8 @@ const PageHeader = ({ lang, tx }: SectionProps) => (
       <span style={{ color: "#CBD5E1" }}>·</span>
       <a href="https://github.com/rafaelnassar">github.com/rafaelnassar</a>
       <span style={{ color: "#CBD5E1" }}>·</span>
-      <a href="https://linkedin.com/in/rafael-nassar-2a3637287">
-        linkedin.com/in/rafael-nassar
+      <a href="https://linkedin.com/in/nassarrafael">
+        linkedin.com/in/nassarrafael
       </a>
     </div>
   </header>

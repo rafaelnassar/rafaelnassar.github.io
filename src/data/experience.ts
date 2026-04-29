@@ -32,8 +32,8 @@ export const experiences: ExperienceEntry[] = [
     },
     company: "FG Sistema e Informática",
     location: {
-      pt: "Cuiabá, MT",
-      en: "Cuiabá, MT, Brazil",
+      pt: "Várzea Grande, MT",
+      en: "Várzea Grande, MT, Brazil",
     },
     description: {
       pt: "Promovido a programador depois de cumprir os requisitos durante o ciclo no N2. Atualmente responsável pelo setor mobile e web da empresa: Ctrix Auto (app pra oficinas), Painel do Contador (automação da coleta mensal de XMLs entre suporte e contador), uma API interna de emissão fiscal (MDFe, NFCe e NFe) e o site institucional (listado em Clientes). Uso Delphi quando preciso integrar com o ERP existente.",
@@ -54,8 +54,8 @@ export const experiences: ExperienceEntry[] = [
   },
   {
     period: {
-      pt: "Jan 2024 — Jan 2026",
-      en: "Jan 2024 — Jan 2026",
+      pt: "Dez 2023 — Jan 2026",
+      en: "Dec 2023 — Jan 2026",
     },
     title: {
       pt: "Suporte N2",
@@ -63,8 +63,8 @@ export const experiences: ExperienceEntry[] = [
     },
     company: "FG Sistema e Informática",
     location: {
-      pt: "Cuiabá, MT",
-      en: "Cuiabá, MT, Brazil",
+      pt: "Várzea Grande, MT",
+      en: "Várzea Grande, MT, Brazil",
     },
     description: {
       pt: "Atuei também como supervisor da equipe de suporte. Trabalho misto entre suporte, programação e infra: ajustes em rotinas Delphi pra corrigir fluxos do sistema, manutenção de bancos MySQL legados (4.1, com alguns clientes ainda em 4.0), servidores e redes nos clientes, manutenção de hardware e atendimento direto. Os atendimentos e implantações mais complexos geralmente passavam por mim.",

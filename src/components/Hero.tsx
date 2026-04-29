@@ -109,7 +109,7 @@ export const Hero = () => {
             <Github className="w-5 h-5" aria-hidden />
           </a>
           <a
-            href="https://www.linkedin.com/in/rafael-nassar-2a3637287"
+            href="https://www.linkedin.com/in/nassarrafael"
             target="_blank"
             rel="noopener noreferrer"
             className={iconButtonClassName("outline", "lg")}

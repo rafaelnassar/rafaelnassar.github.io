@@ -34,8 +34,8 @@ export const Contact = () => {
     {
       icon: Linkedin,
       label: "LinkedIn",
-      handle: "rafael-nassar",
-      href: "https://www.linkedin.com/in/rafael-nassar-2a3637287",
+      handle: "nassarrafael",
+      href: "https://www.linkedin.com/in/nassarrafael",
     },
     {
       icon: Github,
