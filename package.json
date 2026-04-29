@@ -9,7 +9,10 @@
     "build:dev": "vite build --mode development && node scripts/post-build.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "cv:build": "node scripts/build-cv.mjs --rebuild"
+    "cv:build": "node scripts/build-cv.mjs --rebuild",
+    "test:e2e": "vite build && playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:fast": "playwright test"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
