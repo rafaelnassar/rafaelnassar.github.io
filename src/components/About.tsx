@@ -11,11 +11,13 @@ export const About = () => {
   const { lang } = useLang()
   const tx = t(lang)
 
-  // Stats labels traduzidas (valores numéricos não mudam)
+  // Stats: o terceiro slot foi reposicionado de "23+ tecnologias" (vaidade,
+  // contagem de stack pouco verificável) para "5+ anos com emissão fiscal" —
+  // métrica concreta que sustenta o pitch de especialização do Hero.
   const stats = [
     { value: '7+', label: tx.about.statYears },
     { value: '20+', label: tx.about.statProjects },
-    { value: '23+', label: tx.about.statTechs },
+    { value: '5+', label: tx.about.statTechs },
   ]
 
   return (
