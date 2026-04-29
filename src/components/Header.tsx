@@ -272,7 +272,7 @@ export const Header = () => {
           <ThemeToggle />
           <Button size="sm" asChild>
             <a
-              href="https://www.linkedin.com/in/rafael-nassar-2a3637287"
+              href="https://www.linkedin.com/in/nassarrafael"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -348,7 +348,7 @@ export const Header = () => {
               <div className="mt-4 pt-4 border-t border-border">
                 <Button className="w-full" asChild>
                   <a
-                    href="https://www.linkedin.com/in/rafael-nassar-2a3637287"
+                    href="https://www.linkedin.com/in/nassarrafael"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
