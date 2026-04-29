@@ -32,6 +32,25 @@ export const Projects = () => {
               className={cn(cardClassName(project.featured ? 'featured' : 'default'), 'group')}
             >
               <div className="flex flex-col gap-4">
+                {/*
+                  Preview opcional (especialmente útil pros NDA — uma imagem
+                  censurada já vira evidência visível pro recrutador). Aspect
+                  ratio fixo 16:9 evita layout shift enquanto a imagem carrega.
+                  Lazy loading + dimensões explícitas no schema preservam CWV.
+                */}
+                {project.image && (
+                  <div className="aspect-video w-full overflow-hidden rounded-lg border border-border/60 bg-secondary/40">
+                    <img
+                      src={project.image.src}
+                      alt={project.image.alt[lang]}
+                      loading="lazy"
+                      width={1280}
+                      height={720}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <h3 className="font-medium text-base sm:text-lg">{project.title}</h3>

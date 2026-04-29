@@ -1,4 +1,4 @@
-import { MessageCircle, Github, Linkedin, ArrowUpRight } from "lucide-react";
+import { MessageCircle, Mail, Github, Linkedin, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { cn, focusRing } from "@/lib/utils";
@@ -11,6 +11,12 @@ export const Contact = () => {
 
   const whatsappMessage = encodeURIComponent(tx.contact.whatsappMessage);
 
+  /*
+   * WhatsApp segue como highlight (canal preferencial pro mercado BR).
+   * Email entra logo abaixo — recrutador internacional / propostas formais
+   * geralmente preferem mailto. Não rouba o slot de destaque, só amplia o
+   * leque de canais visíveis sem precisar abrir o CV pra encontrar o e-mail.
+   */
   const links = [
     {
       icon: MessageCircle,
@@ -18,6 +24,12 @@ export const Contact = () => {
       handle: tx.contact.whatsappHandle,
       href: `https://wa.me/5565981342422?text=${whatsappMessage}`,
       highlight: true,
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      handle: "adm.rafaelnassar@gmail.com",
+      href: "mailto:adm.rafaelnassar@gmail.com",
     },
     {
       icon: Linkedin,
@@ -45,12 +57,16 @@ export const Contact = () => {
           />
 
           <Reveal delay={0.05} className="space-y-4 max-w-md mx-auto">
-            {links.map((link) => (
+            {links.map((link) => {
+              // mailto: não deve abrir em nova aba (browsers abrem janela vazia).
+              // Apenas links http(s) recebem target="_blank".
+              const isExternal = link.href.startsWith("http");
+              return (
               <a
                 key={link.label}
                 href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
                 className={cn(
                   "flex items-center justify-between p-5 sm:p-6 rounded-2xl border transition-all duration-300 group",
                   focusRing,
@@ -78,7 +94,8 @@ export const Contact = () => {
                   className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200"
                 />
               </a>
-            ))}
+              );
+            })}
           </Reveal>
         </div>
       </div>
