@@ -50,8 +50,8 @@ const dict = {
     },
     role: { pt: "Software Engineer", en: "Software Engineer" },
     pitch: {
-      pt: "Construo apps web, mobile e SaaS — do greenfield à integração com sistemas legados, incluindo emissão fiscal NFCe, NFe e MDFe.",
-      en: "I build web, mobile and SaaS apps — from greenfield to legacy-system integration, including Brazilian e-invoicing (NFCe, NFe, MDFe).",
+      pt: "Construo apps web e mobile, APIs e SaaS — com foco em emissão fiscal (NFCe, NFe, MDFe) e integração com ERPs.",
+      en: "I build web and mobile apps, APIs and SaaS — focused on Brazilian e-invoicing (NFCe, NFe, MDFe) and ERP integration.",
     },
     resumeLabel: { pt: "Currículo", en: "Resume" },
     resumeAria: {
@@ -74,14 +74,14 @@ const dict = {
       en: "A bit of my story and journey",
     },
     p1: {
-      pt: "Desde 2019 entrego software para problemas reais de empresa: força de venda, controle financeiro, emissão fiscal, dashboards internos, SaaS e integrações corporativas. Comecei no suporte N1 e cresci para engenheiro de software dentro do mesmo nicho — varejo, ERP e automação fiscal brasileira.",
-      en: "Since 2019 I've been shipping software for real business problems: field sales, financial controls, e-invoicing, internal dashboards, SaaS, and enterprise integrations. I started in L1 support and grew into software engineering within the same niche — retail, ERP, and Brazilian tax automation.",
+      pt: "Estou na área desde 2019. Comecei como suporte N1, passei por suporte N2 (onde também atuei como supervisor) e cresci para engenheiro de software dentro do mesmo nicho: ERPs, varejo e emissão fiscal brasileira. No caminho trabalhei com sistemas web corporativos, força de venda, dashboards internos, integrações com sistemas existentes e a parte de infra (servidores, redes, hardware).",
+      en: "I've been in the field since 2019. Started as L1 support, moved to L2 (where I also acted as team supervisor) and grew into a software engineer within the same niche: ERPs, retail and Brazilian tax compliance. Along the way I worked on corporate web systems, field-sales apps, internal dashboards, integrations with existing systems and the infra side (servers, networks, hardware).",
     },
     p2: {
-      pt: "Atuo do greenfield ao legado: do Delphi às stacks modernas em React, Next.js e React Native; APIs em Node.js, AdonisJS e PHP/Laravel; infraestrutura Linux e Windows Server. A combinação rara — código moderno + sistema legado de 20 anos + emissão fiscal NFCe/NFe/MDFe — é o que move meu trabalho.",
-      en: "I work across greenfield and legacy: from Delphi to modern stacks like React, Next.js and React Native; APIs in Node.js, AdonisJS and PHP/Laravel; Linux and Windows Server infrastructure. The rare combination — modern code + 20-year-old legacy systems + Brazilian e-invoicing — is what drives my work.",
+      pt: "Hoje, na maior parte do tempo, conecto código moderno a sistemas que já estão rodando — sem precisar reescrever o que funciona. Trabalho do Delphi às stacks modernas em React, Next.js e React Native, com APIs em Node.js, AdonisJS e PHP/Laravel sobre Linux e Windows Server.",
+      en: "Most of my time now is spent connecting modern code to systems that are already running — without having to rewrite what works. I work across Delphi and modern stacks like React, Next.js and React Native, with APIs in Node.js, AdonisJS and PHP/Laravel running on Linux and Windows Server.",
     },
-    statYears: { pt: "Anos em produção", en: "Years shipping" },
+    statYears: { pt: "Anos na área", en: "Years in the field" },
     statProjects: { pt: "Projetos entregues", en: "Projects delivered" },
     statTechs: { pt: "Anos com emissão fiscal", en: "Years with e-invoicing" },
   },
@@ -112,8 +112,8 @@ const dict = {
     codeAriaSuffix: { pt: "no GitHub", en: "on GitHub" },
     liveAriaSuffix: { pt: "ao vivo", en: "live" },
     internal: {
-      pt: "Projeto interno · sob NDA",
-      en: "Internal project · under NDA",
+      pt: "Projeto interno · confidencial",
+      en: "Internal project · confidential",
     },
   },
 
@@ -136,8 +136,8 @@ const dict = {
     title: { pt: "Stack", en: "Stack" },
     italic: { pt: "técnica", en: "technical" },
     subtitle: {
-      pt: "Ferramentas que uso no dia a dia para entregar do legado ao moderno",
-      en: "Tools I use daily to deliver from legacy to modern systems",
+      pt: "Ferramentas que uso no dia a dia.",
+      en: "Tools I use day to day.",
     },
   },
 
@@ -189,8 +189,8 @@ const dict = {
     downloadPdf: { pt: "Baixar PDF", en: "Download PDF" },
     profile: { pt: "Perfil", en: "Profile" },
     profileText: {
-      pt: "Construo apps web, mobile e SaaS — do greenfield à integração com sistemas legados, incluindo emissão fiscal NFCe, NFe e MDFe. Desde 2019 entrego soluções para força de venda, controle financeiro, emissão fiscal, dashboards internos, automações e integrações corporativas. Atuo do Delphi às stacks modernas em React, Next.js e React Native, com APIs em Node.js, AdonisJS e PHP/Laravel sobre infraestrutura Linux e Windows Server.",
-      en: "I build web, mobile and SaaS apps — from greenfield to legacy-system integration, including Brazilian e-invoicing (NFCe, NFe, MDFe). Since 2019 I've delivered solutions for field sales, financial controls, e-invoicing, internal dashboards, automations and enterprise integrations. I work across Delphi and modern stacks (React, Next.js, React Native), with APIs in Node.js, AdonisJS and PHP/Laravel running on Linux and Windows Server.",
+      pt: "Construo apps web e mobile, APIs e SaaS, com foco em emissão fiscal (NFCe, NFe, MDFe) e integração com ERPs. Estou na área desde 2019: comecei como suporte N1, passei por suporte N2 (também como supervisor) e cresci para engenheiro de software dentro do mesmo nicho — ERPs, varejo e emissão fiscal brasileira. Atuo do Delphi às stacks modernas em React, Next.js e React Native, com APIs em Node.js, AdonisJS e PHP/Laravel, sobre infraestrutura Linux e Windows Server.",
+      en: "I build web and mobile apps, APIs and SaaS, focused on Brazilian e-invoicing (NFCe, NFe, MDFe) and ERP integration. I've been in the field since 2019: started as L1 support, moved to L2 (also as team supervisor) and grew into a software engineer within the same niche — ERPs, retail and Brazilian tax compliance. I work across Delphi and modern stacks like React, Next.js and React Native, with APIs in Node.js, AdonisJS and PHP/Laravel running on Linux and Windows Server.",
     },
     section_experience: { pt: "Experiência", en: "Experience" },
     section_projects: {

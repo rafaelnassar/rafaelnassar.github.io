@@ -18,8 +18,8 @@ export const clients: Client[] = [
     name: "Cacttus Brasil",
     url: "cacttusbrasil.com.br",
     description: {
-      pt: "Site institucional para empresa de ERP corporativo legado. Modernização da identidade digital com foco em clareza, performance e conversão.",
-      en: "Institutional website for a legacy corporate ERP company. Digital identity modernization focused on clarity, performance and conversion.",
+      pt: "Site institucional para empresa de software ERP. Layout direto, focado em apresentar soluções e canais de contato.",
+      en: "Institutional website for an ERP software company. Direct layout, focused on presenting solutions and contact channels.",
     },
     technologies: ["React", "Tailwind", "Vite"],
   },
@@ -36,8 +36,8 @@ export const clients: Client[] = [
     name: "Agrotippo",
     url: "agrotippo.com.br",
     description: {
-      pt: "Site institucional para cliente do agronegócio. Layout limpo com foco em apresentação de soluções agrícolas e captura de leads.",
-      en: "Institutional website for an agribusiness client. Clean layout focused on presenting agricultural solutions and capturing leads.",
+      pt: "Site institucional para cliente do agronegócio. Layout limpo, focado em mostrar as soluções agrícolas e facilitar o contato.",
+      en: "Institutional website for an agribusiness client. Clean layout, focused on showcasing the agricultural solutions and making contact easy.",
     },
     technologies: ["React", "Tailwind", "Vite"],
   },
