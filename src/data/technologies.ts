@@ -41,11 +41,11 @@ export const stack: TechCategory[] = [
     items: ["React Native", "Expo"],
   },
   {
-    category: { pt: "Bancos & Cache", en: "Databases & Cache" },
+    category: { pt: "Bancos de dados", en: "Databases" },
     iconName: "Database",
     description: {
-      pt: "Persistência relacional e dados em memória",
-      en: "Relational persistence and in-memory data",
+      pt: "Relacionais e em memória",
+      en: "Relational and in-memory",
     },
     items: ["PostgreSQL", "MySQL", "MariaDB", "Redis"],
   },
@@ -53,8 +53,8 @@ export const stack: TechCategory[] = [
     category: { pt: "DevOps & Infra", en: "DevOps & Infra" },
     iconName: "Cloud",
     description: {
-      pt: "Deploy, observabilidade e administração de servidores",
-      en: "Deployment, observability and server administration",
+      pt: "Servidores, deploy e monitoramento",
+      en: "Servers, deployment and monitoring",
     },
     items: [
       "Docker",
