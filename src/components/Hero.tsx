@@ -64,8 +64,12 @@ export const Hero = () => {
         className="max-w-2xl mx-auto text-center"
       >
         <motion.div variants={fadeUpSmall} className="mb-6">
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary/80 text-sm text-foreground/70">
-            <span aria-hidden className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+          {/*
+            Pílula mantida (decisão estética). Removido o dot verde pulsante
+            (clichê SaaS-platform) e ajustado contraste de text-foreground/70
+            (borderline 4.5:1) → text-foreground (AAA sobre bg-secondary).
+          */}
+          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-secondary/80 text-sm text-foreground">
             {tx.hero.badge}
           </span>
         </motion.div>

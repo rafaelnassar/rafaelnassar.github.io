@@ -70,15 +70,10 @@ export const certifications: Certification[] = [
       en: ["SQL", "Databases", "REST APIs"],
     },
   },
-  {
-    name: "Java (Basic)",
-    issuer: "HackerRank",
-    date: "Jul 2025",
-    credentialId: "1a0e10ba8e0d",
-    credentialUrl: "https://www.hackerrank.com/certificates/1a0e10ba8e0d",
-    skills: {
-      pt: ["Java", "Programação"],
-      en: ["Java", "Programming"],
-    },
-  },
+  /*
+   * "Java (Basic)" foi removido propositalmente: cert de nível "Basic" ao
+   * lado de 7 anos de carreira soa contraditório pra recrutador técnico —
+   * sinaliza incerteza onde se quer mostrar consolidação. Se for re-incluído
+   * no futuro, fazer com Java (Intermediate) ou (Advanced).
+   */
 ];

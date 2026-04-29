@@ -36,8 +36,8 @@ export const experiences: ExperienceEntry[] = [
       en: "Cuiabá, MT, Brazil",
     },
     description: {
-      pt: "Construí o Ctrix Auto, o Painel do Contador, uma API interna de emissão MDFe e o site institucional da empresa. Stack completa em uso: web, mobile, APIs, integração com sistema legado em Delphi e infraestrutura Linux/Windows.",
-      en: "Built Ctrix Auto, the Accountant Panel, an internal MDFe e-invoice API, and the company's institutional website. Full stack in use: web, mobile, APIs, integration with a legacy Delphi system, and Linux/Windows infrastructure.",
+      pt: "Liderei a entrega de quatro produtos integrados a um ERP Delphi de 20 anos sem reescrita: Ctrix Auto (app mobile pra oficinas mecânicas), Painel do Contador (eliminou coleta manual mensal de XMLs entre suporte e contadores), API interna de emissão MDFe e site institucional. Stack em uso: React, React Native, Node.js/AdonisJS, PostgreSQL, Docker e infraestrutura Linux/Windows.",
+      en: "Led delivery of four products integrated with a 20-year-old Delphi ERP without a rewrite: Ctrix Auto (mobile app for auto repair shops), Accountant Panel (eliminated monthly manual XML collection between support and accountants), an internal MDFe e-invoice API, and the company's institutional website. Stack in use: React, React Native, Node.js/AdonisJS, PostgreSQL, Docker, and Linux/Windows infrastructure.",
     },
     tags: [
       "React",
@@ -65,8 +65,8 @@ export const experiences: ExperienceEntry[] = [
       en: "Cuiabá, MT, Brazil",
     },
     description: {
-      pt: "Suporte N2 com escopo técnico ampliado: rotinas em Delphi, modelagem e manutenção de bancos de dados de clientes, emissão de certificados digitais e infraestrutura — além do atendimento tradicional de chamados.",
-      en: "L2 support with extended technical scope: Delphi routines, database design and maintenance for client systems, digital certificate issuance, and infrastructure — beyond the traditional ticket handling.",
+      pt: "Atuei além do escopo de chamados: escrevi rotinas em Delphi, modelei e mantive bancos de clientes (PostgreSQL), emiti e gerenciei certificados digitais ICP-Brasil e cuidei da infraestrutura Linux/Windows. Ciclo serviu de ponte para a transição a engenheiro de software na mesma empresa.",
+      en: "Worked beyond the standard ticket scope: wrote Delphi routines, modeled and maintained client databases (PostgreSQL), issued and managed ICP-Brasil digital certificates, and handled Linux/Windows infrastructure. This phase served as the bridge to my move into software engineering at the same company.",
     },
     tags: [
       "Suporte N2",
@@ -91,8 +91,8 @@ export const experiences: ExperienceEntry[] = [
       en: "Cuiabá, MT, Brazil",
     },
     description: {
-      pt: "Construí APIs em Node.js/Express, app de força de vendas em React Native e configurei servidores para serviços internos. Iniciei do zero o sistema web corporativo da empresa — que ao fim do meu período já emitia NFe. Também entreguei o site institucional (presente em Clientes).",
-      en: "Built APIs in Node.js/Express, a field-sales mobile app in React Native, and configured servers for internal services. Bootstrapped the company's corporate web system from scratch — which by the end of my tenure was already issuing NFe e-invoices. I also delivered the institutional website (listed under Clients).",
+      pt: "Iniciei do zero o sistema web corporativo da empresa — que ao final do meu ciclo já emitia NFe em produção. Construí APIs em Node.js/Express, app de força de vendas em React Native e administrei servidores para serviços internos. Entreguei também o site institucional (listado em Clientes).",
+      en: "Bootstrapped the company's corporate web system from scratch — by the end of my tenure it was already issuing NFe e-invoices in production. Built APIs in Node.js/Express, a field-sales mobile app in React Native, and administered servers for internal services. Also delivered the institutional website (listed under Clients).",
     },
     tags: ["Node.js", "Express", "React Native", "React", "PostgreSQL", "NFe"],
   },
@@ -111,8 +111,8 @@ export const experiences: ExperienceEntry[] = [
       en: "Cuiabá, MT, Brazil",
     },
     description: {
-      pt: "Suporte N1 para sistema legado de gestão. Resolução de chamados de emissão fiscal, dúvidas de uso e correções diretas em banco de dados. Conduzia implantação no cliente, treinamento e manutenção de máquinas e rede.",
-      en: "L1 support for a legacy management system. Resolved tax-compliance tickets, usage questions, and direct database fixes. Led on-site deployment, end-user training, and machine/network maintenance.",
+      pt: "Iniciei carreira no suporte N1 de ERP legado: resolvi chamados de emissão fiscal e dúvidas de uso, fiz correções diretas em banco (Firebird) e conduzi implantações on-site, com treinamento de usuários e manutenção de máquinas/rede. Primeiro contato sério com emissão fiscal NFCe — base do nicho que sigo até hoje.",
+      en: "Started my career in L1 support for a legacy ERP: resolved tax-compliance tickets, handled usage questions, made direct database fixes (Firebird), and led on-site deployments with user training and machine/network maintenance. First serious exposure to NFCe e-invoicing — the foundation of the niche I've stayed in since.",
     },
     tags: [
       "Suporte N1",
