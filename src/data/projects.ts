@@ -4,6 +4,9 @@
  * - description: { pt, en } — tradução completa
  * - title, technologies, URLs: invariáveis (nomes próprios)
  * - status: opcional, badge curto exibido ao lado do título — bilíngue
+ * - image: opcional, screenshot/preview do projeto (especialmente útil pros
+ *   projetos internal/NDA — recrutador internacional descarta o que não
+ *   consegue ver, então uma imagem censurada/borrada já vira evidência)
  */
 
 export interface Project {
@@ -18,6 +21,17 @@ export interface Project {
   status?: { pt: string; en: string };
   /** Projeto interno/sob NDA — sem links públicos */
   internal?: boolean;
+  /**
+   * Preview do projeto. Recomendação:
+   * - 1280×720 (16:9), .webp pra peso, .gif só se precisar mostrar fluxo
+   * - Pra projetos NDA, borrar/censurar dados sensíveis mantendo composição
+   * - Caminho relativo a /public/ (ex: '/projects/emittly.webp')
+   * - alt traduzido pra a11y
+   */
+  image?: {
+    src: string;
+    alt: { pt: string; en: string };
+  };
 }
 
 export const projects: Project[] = [
@@ -41,6 +55,11 @@ export const projects: Project[] = [
       pt: "Em desenvolvimento",
       en: "In development",
     },
+    // Adicione um preview quando tiver landing/dashboard prontos:
+    // image: {
+    //   src: "/projects/emittly.webp",
+    //   alt: { pt: "Painel do Emittly emitindo NFCe", en: "Emittly dashboard issuing NFCe" },
+    // },
   },
   {
     title: "SecureVault",
@@ -50,6 +69,10 @@ export const projects: Project[] = [
     },
     technologies: ["React", "TypeScript", "Tauri", "Rust", "SQLite", "Tailwind"],
     githubUrl: "https://github.com/rafaelnassar/securevault",
+    // image: {
+    //   src: "/projects/securevault.webp",
+    //   alt: { pt: "Tela principal do SecureVault", en: "SecureVault main screen" },
+    // },
   },
   {
     title: "Painel do Contador",
@@ -59,6 +82,12 @@ export const projects: Project[] = [
     },
     technologies: ["React", "Node.js", "Supabase"],
     internal: true,
+    // Pra recrutador internacional, screenshot censurado (CNPJs/nomes borrados)
+    // já transforma este projeto NDA em evidência visível. Adicionar:
+    // image: {
+    //   src: "/projects/painel-do-contador.webp",
+    //   alt: { pt: "Painel listando XMLs sincronizados (dados censurados)", en: "Panel listing synced XMLs (data redacted)" },
+    // },
   },
   {
     title: "Ctrix Auto",
@@ -68,5 +97,10 @@ export const projects: Project[] = [
     },
     technologies: ["React Native", "Expo", "Node.js", "PostgreSQL"],
     internal: true,
+    // Sugestão pra mostrar o app sem expor cliente real:
+    // image: {
+    //   src: "/projects/ctrix-auto.webp",
+    //   alt: { pt: "Telas do app Ctrix Auto (mockup)", en: "Ctrix Auto app screens (mockup)" },
+    // },
   },
 ];
