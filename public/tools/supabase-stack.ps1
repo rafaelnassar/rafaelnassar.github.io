@@ -722,7 +722,7 @@ function Wait-Health {
   Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('ps') -AllowFailure | Out-Null
 }
 
-function Show-Access {
+function New-AccessReport {
   param([string]$InstanceName)
 
   $dir = Get-InstanceDir $InstanceName
@@ -736,6 +736,85 @@ function Show-Access {
   $dbPass = Read-EnvValue -File $envFile -Key 'POSTGRES_PASSWORD'
   $dbPort = Read-EnvValue -File $envFile -Key 'POSTGRES_PORT'
   $poolerPort = Read-EnvValue -File $envFile -Key 'POOLER_PROXY_PORT_TRANSACTION'
+  $displayUser = $dashboardUser
+
+  if ([string]::IsNullOrWhiteSpace($displayUser)) {
+    $displayUser = 'supabase'
+  }
+
+  return @"
+======================================================
+              SUPABASE ACCESS AND SECRETS
+======================================================
+
+INSTANCE
+  Name:                 $InstanceName
+  Folder:               $dir
+  Generated:            $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+STUDIO
+  URL:                  $studioUrl
+  Username:             $displayUser
+  Password:             $dashboardPass
+
+API
+  URL:                  $studioUrl
+  Public/Anon key:      $publicKey
+  Secret/Service key:   $secretKey
+
+POSTGRES
+  Host:                 localhost
+  Port:                 $dbPort
+  Database:             postgres
+  Username:             postgres
+  Password:             $dbPass
+
+POOLER
+  Host:                 localhost
+  Transaction port:     $poolerPort
+
+SECURITY
+  This file contains sensitive credentials.
+  Do not share it or save it in a public location.
+  This temporary file is deleted when Notepad closes.
+"@
+}
+
+function Open-AccessReport {
+  param(
+    [Parameter(Mandatory = $true)][string]$Report,
+    [Parameter(Mandatory = $true)][string]$InstanceName,
+    [string]$EditorPath
+  )
+
+  if ([string]::IsNullOrWhiteSpace($EditorPath)) {
+    $EditorPath = Join-Path $env:SystemRoot 'System32\notepad.exe'
+  }
+
+  if (-not (Test-Path -LiteralPath $EditorPath)) {
+    throw "Notepad was not found: $EditorPath"
+  }
+
+  $reportName = 'supabase-access-{0}-{1}.txt' -f $InstanceName, ([guid]::NewGuid().ToString('N'))
+  $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) $reportName
+  $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+
+  try {
+    [System.IO.File]::WriteAllText($reportPath, $Report, $utf8WithBom)
+    Info 'Opening access and secrets in Notepad...'
+    Info 'Close Notepad to delete the temporary report and return to the menu.'
+    Start-Process -FilePath $EditorPath -ArgumentList ('"{0}"' -f $reportPath) -Wait
+  } finally {
+    Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
+  }
+}
+
+function Show-Access {
+  param([string]$InstanceName)
+
+  $dir = Get-InstanceDir $InstanceName
+  $envFile = Join-Path $dir '.env'
+  $studioUrl = Read-EnvValue -File $envFile -Key 'SUPABASE_PUBLIC_URL'
 
   Write-Host ''
   Say '======================================================' Green
@@ -745,28 +824,15 @@ function Show-Access {
   Write-Host ("Name:               {0}" -f $InstanceName)
   Write-Host ("Folder:             {0}" -f $dir)
   Write-Host ''
-  Write-Host ("Studio:             {0}" -f $studioUrl)
-  Write-Host ("Studio user:        {0}" -f ($(if ($dashboardUser) { $dashboardUser } else { 'supabase' })))
-  Write-Host ("Studio password:    {0}" -f $dashboardPass)
-  Write-Host ''
-  Write-Host ("Supabase URL:       {0}" -f $studioUrl)
-  Write-Host ("Public/Anon key:    {0}" -f $publicKey)
-  Write-Host ("Secret/Service key: {0}" -f $secretKey)
-  Write-Host ''
-  Write-Host ("Postgres host:      localhost")
-  Write-Host ("Postgres port:      {0}" -f $dbPort)
-  Write-Host ("Postgres user:      postgres")
-  Write-Host ("Postgres password:  {0}" -f $dbPass)
-  Write-Host ("Pooler port:        {0}" -f $poolerPort)
-  Write-Host ''
-  Warn 'Save these values. They belong only to this instance.'
-  Write-Host ''
 
   Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('ps') -AllowFailure | Out-Null
 
   if ($OpenStudio -and $studioUrl) {
     Start-Process $studioUrl | Out-Null
   }
+
+  $report = New-AccessReport -InstanceName $InstanceName
+  Open-AccessReport -Report $report -InstanceName $InstanceName
 }
 
 function Create-Instance {
