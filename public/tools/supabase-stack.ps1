@@ -469,11 +469,54 @@ function Test-PortUsed {
   }
 }
 
+function Get-ConfiguredPorts {
+  param([string]$ExcludeInstanceName)
+
+  if (-not (Test-Path -LiteralPath $script:BaseDir)) {
+    return @()
+  }
+
+  $ports = @()
+  $portKeys = @(
+    'KONG_HTTP_PORT',
+    'KONG_HTTPS_PORT',
+    'POSTGRES_PORT',
+    'POOLER_PROXY_PORT_TRANSACTION'
+  )
+
+  Get-ChildItem -LiteralPath $script:BaseDir -Directory -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    if (($_.Name -eq '_supabase_repo') -or ($_.Name -ieq $ExcludeInstanceName)) {
+      return
+    }
+
+    $envFile = Join-Path $_.FullName '.env'
+    if (-not (Test-Path -LiteralPath $envFile)) {
+      return
+    }
+
+    foreach ($key in $portKeys) {
+      $value = Read-EnvValue -File $envFile -Key $key
+      $parsedPort = 0
+
+      if ([int]::TryParse($value, [ref]$parsedPort) -and ($parsedPort -ge 1) -and ($parsedPort -le 65535)) {
+        $ports += $parsedPort
+      }
+    }
+  }
+
+  return @($ports | Sort-Object -Unique)
+}
+
 function Get-FreePort {
-  param([int]$Start)
+  param(
+    [int]$Start,
+    [string]$ExcludeInstanceName
+  )
 
   $port = $Start
-  while (Test-PortUsed -Port $port) {
+  $configuredPorts = @(Get-ConfiguredPorts -ExcludeInstanceName $ExcludeInstanceName)
+
+  while ((Test-PortUsed -Port $port) -or ($configuredPorts -contains $port)) {
     $port++
   }
 
@@ -771,10 +814,10 @@ function Create-Instance {
 
   Copy-Item -LiteralPath $envExample -Destination $envFile -Force
 
-  $studioPort = Get-FreePort -Start 8000
-  $httpsPort = Get-FreePort -Start 8443
-  $dbPort = Get-FreePort -Start 54322
-  $poolerPort = Get-FreePort -Start 6543
+  $studioPort = Get-FreePort -Start 8000 -ExcludeInstanceName $instanceName
+  $httpsPort = Get-FreePort -Start 8443 -ExcludeInstanceName $instanceName
+  $dbPort = Get-FreePort -Start 54322 -ExcludeInstanceName $instanceName
+  $poolerPort = Get-FreePort -Start 6543 -ExcludeInstanceName $instanceName
 
   Set-EnvValue -File $envFile -Key 'INSTANCE_NAME' -Value $instanceName
   Set-EnvValue -File $envFile -Key 'COMPOSE_PROJECT_NAME' -Value $instanceName
