@@ -14,7 +14,7 @@ param(
     'list','ls',
     'clean',
     'doctor',
-    'update',
+    'update','upgrade',
     'help'
   )]
   [string]$Command = 'help',
@@ -90,10 +90,14 @@ Usage:
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 status <name>
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 logs <name> [service] [-Follow]
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 secrets <name>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 upgrade <name>
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 reset <name>
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 list
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 clean
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 update
+
+  upgrade <name>
+    Update instance Docker files/images without deleting volumes, .env or secrets.
 
 Examples:
 
@@ -156,6 +160,44 @@ function Resolve-Git {
   return $null
 }
 
+function Invoke-Native {
+  param(
+    [Parameter(Mandatory = $true)][string]$FilePath,
+    [Parameter(Mandatory = $true)][string[]]$Arguments,
+    [switch]$Quiet,
+    [switch]$AllowFailure
+  )
+
+  $oldPreference = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  $output = @()
+  $code = 0
+
+  try {
+    $output = @(& $FilePath @Arguments 2>&1)
+    $code = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $oldPreference
+  }
+
+  $script:LastNativeExitCode = $code
+
+  if (-not $Quiet -and $output) {
+    $output | ForEach-Object { Write-Host $_ }
+  }
+
+  if (($code -ne 0) -and (-not $AllowFailure)) {
+    $message = "Command failed with exit code $code`: $FilePath $($Arguments -join ' ')"
+    if ($output) {
+      $tail = ($output | Select-Object -Last 20) -join [Environment]::NewLine
+      $message = "$message`n$tail"
+    }
+    throw $message
+  }
+
+  return $output
+}
+
 function Start-DockerDesktopIfNeeded {
   $desktop = Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'
 
@@ -171,24 +213,19 @@ function Start-DockerDesktopIfNeeded {
 function Ensure-Docker {
   $script:DockerExe = Resolve-Docker
 
-  try {
-    & $script:DockerExe info *> $null
-    if ($LASTEXITCODE -ne 0) {
-      throw 'docker info failed'
-    }
+  Invoke-Native -FilePath $script:DockerExe -Arguments @('info') -Quiet -AllowFailure | Out-Null
+  if ($script:LastNativeExitCode -eq 0) {
     Ok 'Docker is installed and accessible.'
-  } catch {
+  } else {
     Start-DockerDesktopIfNeeded
 
     for ($i = 1; $i -le 90; $i++) {
       Start-Sleep -Seconds 2
-      try {
-        & $script:DockerExe info *> $null
-        if ($LASTEXITCODE -eq 0) {
-          Ok 'Docker Desktop is accessible.'
-          break
-        }
-      } catch {}
+      Invoke-Native -FilePath $script:DockerExe -Arguments @('info') -Quiet -AllowFailure | Out-Null
+      if ($script:LastNativeExitCode -eq 0) {
+        Ok 'Docker Desktop is accessible.'
+        break
+      }
 
       if ($i -eq 90) {
         throw 'Docker Desktop is not running or not accessible. Open Docker Desktop and try again.'
@@ -196,10 +233,7 @@ function Ensure-Docker {
     }
   }
 
-  & $script:DockerExe compose version *> $null
-  if ($LASTEXITCODE -ne 0) {
-    throw 'Docker Compose V2 is not available. Update Docker Desktop.'
-  }
+  Invoke-Native -FilePath $script:DockerExe -Arguments @('compose','version') -Quiet | Out-Null
 
   Ok 'Docker Compose V2 is available.'
 }
@@ -213,33 +247,37 @@ function Ensure-Repo {
   $script:GitExe = Resolve-Git
 
   if ($script:GitExe) {
-    if ((Test-Path -LiteralPath (Join-Path $script:RepoDir '.git')) -and -not $Force) {
+    $cloneRequired = $Force -or -not (Test-Path -LiteralPath (Join-Path $script:RepoDir '.git'))
+
+    if (-not $cloneRequired) {
       Info 'Updating official Supabase repository cache...'
-      Push-Location $script:RepoDir
       try {
-        & $script:GitExe fetch --depth 1 origin $Branch *> $null
-        & $script:GitExe reset --hard "origin/$Branch" *> $null
-      } finally {
-        Pop-Location
+        Push-Location $script:RepoDir
+        try {
+          Invoke-Native -FilePath $script:GitExe -Arguments @('remote','set-url','origin','https://github.com/supabase/supabase.git') | Out-Null
+          Invoke-Native -FilePath $script:GitExe -Arguments @('fetch','--depth','1','origin',$Branch) | Out-Null
+          Invoke-Native -FilePath $script:GitExe -Arguments @('reset','--hard',"origin/$Branch") | Out-Null
+        } finally {
+          Pop-Location
+        }
+      } catch {
+        Warn 'Repository cache update failed. Cloning a fresh copy...'
+        $cloneRequired = $true
       }
-      Ok 'Repository cache updated.'
-    } else {
+    }
+
+    if ($cloneRequired) {
       if (Test-Path -LiteralPath $script:RepoDir) {
         Remove-Item -LiteralPath $script:RepoDir -Recurse -Force
       }
 
       Info 'Cloning official Supabase repository...'
-      & $script:GitExe clone --depth 1 --branch $Branch https://github.com/supabase/supabase.git $script:RepoDir
-      if ($LASTEXITCODE -ne 0) {
-        throw 'Failed to clone official Supabase repository.'
-      }
-      Ok 'Repository cloned.'
+      Invoke-Native -FilePath $script:GitExe -Arguments @('clone','--depth','1','--branch',$Branch,'https://github.com/supabase/supabase.git',$script:RepoDir) | Out-Null
     }
   } else {
     Warn 'Git not found. Using GitHub ZIP fallback.'
 
     if ((Test-Path -LiteralPath (Join-Path $script:RepoDir 'docker\docker-compose.yml')) -and -not $Force) {
-      Ok 'Supabase repository cache already exists.'
     } else {
       if (Test-Path -LiteralPath $script:RepoDir) {
         Remove-Item -LiteralPath $script:RepoDir -Recurse -Force
@@ -266,7 +304,6 @@ function Ensure-Repo {
         }
 
         Move-Item -LiteralPath $folder.FullName -Destination $script:RepoDir -Force
-        Ok 'Repository downloaded by ZIP.'
       } finally {
         Remove-Item -LiteralPath $tmpRoot -Recurse -Force -ErrorAction SilentlyContinue
       }
@@ -280,6 +317,8 @@ function Ensure-Repo {
   if (-not (Test-Path -LiteralPath (Join-Path $script:RepoDir 'docker\.env.example'))) {
     throw '.env.example was not found. Supabase repository structure may have changed.'
   }
+
+  Ok 'Repository cache ready.'
 }
 
 function New-Slug {
@@ -331,7 +370,11 @@ function Copy-DirectoryContents {
 
   Get-ChildItem -LiteralPath $Source -Force | ForEach-Object {
     $target = Join-Path $Destination $_.Name
-    Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
+    if ($_.PSIsContainer) {
+      Copy-DirectoryContents -Source $_.FullName -Destination $target
+    } else {
+      Copy-Item -LiteralPath $_.FullName -Destination $target -Force
+    }
   }
 }
 
@@ -347,7 +390,7 @@ function Read-EnvValue {
 
   $pattern = '^\s*' + [regex]::Escape($Key) + '=(.*)$'
 
-  foreach ($line in [System.IO.File]::ReadLines($File)) {
+  foreach ($line in [System.IO.File]::ReadAllLines($File)) {
     if ($line -match $pattern) {
       return $Matches[1].Trim().Trim('"')
     }
@@ -438,7 +481,10 @@ function Get-FreePort {
 }
 
 function Patch-DockerComposeContainerNames {
-  param([string]$File)
+  param(
+    [string]$File,
+    [switch]$SkipOriginalBackup
+  )
 
   $text = [System.IO.File]::ReadAllText($File)
 
@@ -447,7 +493,9 @@ function Patch-DockerComposeContainerNames {
     return
   }
 
-  Copy-Item -LiteralPath $File -Destination "$File.original" -Force
+  if (-not $SkipOriginalBackup) {
+    Copy-Item -LiteralPath $File -Destination "$File.original" -Force
+  }
 
   $patched = [regex]::Replace(
     $text,
@@ -580,20 +628,20 @@ function Invoke-Compose {
   )
 
   $dir = Get-InstanceDir $InstanceName
+  $arguments = @('compose','-p',$InstanceName) + $ComposeArgs
 
   Push-Location $dir
   try {
-    & $script:DockerExe compose -p $InstanceName @ComposeArgs
-    $code = $LASTEXITCODE
+    if ($AllowFailure) {
+      Invoke-Native -FilePath $script:DockerExe -Arguments $arguments -AllowFailure | Out-Null
+    } else {
+      Invoke-Native -FilePath $script:DockerExe -Arguments $arguments | Out-Null
+    }
   } finally {
     Pop-Location
   }
 
-  if (($code -ne 0) -and (-not $AllowFailure)) {
-    throw "docker compose failed with code $code."
-  }
-
-  return $code
+  return $script:LastNativeExitCode
 }
 
 function Wait-Health {
@@ -602,10 +650,14 @@ function Wait-Health {
   Info 'Waiting for services to start...'
 
   for ($i = 1; $i -le 60; $i++) {
-    $output = ''
+    $dir = Get-InstanceDir $InstanceName
+    Push-Location $dir
     try {
-      $output = (& $script:DockerExe compose -p $InstanceName ps 2>$null | Out-String)
-    } catch {}
+      $output = Invoke-Native -FilePath $script:DockerExe -Arguments @('compose','-p',$InstanceName,'ps') -Quiet -AllowFailure
+      $output = $output -join [Environment]::NewLine
+    } finally {
+      Pop-Location
+    }
 
     if ($output -match 'unhealthy') {
       Warn 'Some container became unhealthy.'
@@ -749,6 +801,71 @@ function Create-Instance {
   Info 'Starting containers...'
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('up','-d') | Out-Null
 
+  Wait-Health -InstanceName $instanceName
+  Show-Access -InstanceName $instanceName
+}
+
+function Upgrade-Instance {
+  param([string]$RawName)
+
+  Ensure-Docker
+  $instanceName = Require-Instance $RawName
+  $dir = Get-InstanceDir $instanceName
+  $envFile = Join-Path $dir '.env'
+  $volumesDir = Join-Path $dir 'volumes'
+  $composeFile = Join-Path $dir 'docker-compose.yml'
+
+  if (-not (Test-Path -LiteralPath $envFile)) {
+    throw "Instance .env file not found: $envFile"
+  }
+
+  if (-not (Test-Path -LiteralPath $composeFile)) {
+    throw "Instance docker-compose.yml not found: $composeFile"
+  }
+
+  Ensure-Repo
+
+  Title
+  Info "Updating instance without data loss: $instanceName"
+
+  $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+  $backupFile = "$composeFile.backup-$timestamp"
+  Copy-Item -LiteralPath $composeFile -Destination $backupFile -Force
+  Ok "Compose backup created: $backupFile"
+
+  $sourceDir = Join-Path $script:RepoDir 'docker'
+  Info 'Copying updated Docker files...'
+
+  Get-ChildItem -LiteralPath $sourceDir -Force | ForEach-Object {
+    if ($_.Name -in @('.env','volumes')) {
+      return
+    }
+
+    $target = Join-Path $dir $_.Name
+    if ($_.PSIsContainer) {
+      Copy-DirectoryContents -Source $_.FullName -Destination $target
+    } else {
+      Copy-Item -LiteralPath $_.FullName -Destination $target -Force
+    }
+  }
+
+  if (-not (Test-Path -LiteralPath $envFile)) {
+    throw 'Upgrade stopped because the instance .env file was not preserved.'
+  }
+
+  if ((Test-Path -LiteralPath $volumesDir) -and -not (Test-Path -LiteralPath $volumesDir -PathType Container)) {
+    throw 'Upgrade stopped because the instance volumes path is invalid.'
+  }
+
+  Patch-DockerComposeContainerNames -File $composeFile -SkipOriginalBackup
+  Ok 'Docker files updated. Existing .env and volumes were preserved.'
+
+  Info 'Pulling Docker images...'
+  Invoke-Compose -InstanceName $instanceName -ComposeArgs @('pull') | Out-Null
+  Ok 'Docker images pulled.'
+
+  Info 'Applying updated stack...'
+  Invoke-Compose -InstanceName $instanceName -ComposeArgs @('up','-d') | Out-Null
   Wait-Health -InstanceName $instanceName
   Show-Access -InstanceName $instanceName
 }
@@ -904,10 +1021,10 @@ function Clean-Docker {
     return
   }
 
-  & $script:DockerExe container prune -f | Out-Host
-  & $script:DockerExe network prune -f | Out-Host
-  & $script:DockerExe image prune -f | Out-Host
-  & $script:DockerExe builder prune -f | Out-Host
+  Invoke-Native -FilePath $script:DockerExe -Arguments @('container','prune','-f') | Out-Null
+  Invoke-Native -FilePath $script:DockerExe -Arguments @('network','prune','-f') | Out-Null
+  Invoke-Native -FilePath $script:DockerExe -Arguments @('image','prune','-f') | Out-Null
+  Invoke-Native -FilePath $script:DockerExe -Arguments @('builder','prune','-f') | Out-Null
 
   Ok 'Cleanup completed.'
 }
@@ -931,20 +1048,15 @@ function Doctor {
     $script:DockerExe = Resolve-Docker
     Ok "Docker CLI found: $script:DockerExe"
 
-    & $script:DockerExe --version | Write-Host
-
-    try {
-      & $script:DockerExe info *> $null
-      if ($LASTEXITCODE -eq 0) {
-        Ok 'Docker daemon accessible.'
-      } else {
-        Warn 'Docker daemon did not answer.'
-      }
-    } catch {
+    Invoke-Native -FilePath $script:DockerExe -Arguments @('--version') | Out-Null
+    Invoke-Native -FilePath $script:DockerExe -Arguments @('info') -Quiet -AllowFailure | Out-Null
+    if ($script:LastNativeExitCode -eq 0) {
+      Ok 'Docker daemon accessible.'
+    } else {
       Warn 'Docker daemon did not answer.'
     }
 
-    & $script:DockerExe compose version | Write-Host
+    Invoke-Native -FilePath $script:DockerExe -Arguments @('compose','version') -AllowFailure | Out-Null
   } catch {
     Fail $_.Exception.Message
   }
@@ -954,7 +1066,7 @@ function Doctor {
   $script:GitExe = Resolve-Git
   if ($script:GitExe) {
     Ok "Git found: $script:GitExe"
-    & $script:GitExe --version | Write-Host
+    Invoke-Native -FilePath $script:GitExe -Arguments @('--version') | Out-Null
   } else {
     Warn 'Git not found. ZIP fallback will be used.'
   }
@@ -1022,6 +1134,11 @@ try {
 
     'update' {
       Update-Repo
+      break
+    }
+
+    'upgrade' {
+      Upgrade-Instance -RawName $Name
       break
     }
 
