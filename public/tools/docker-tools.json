@@ -1,0 +1,25 @@
+{
+  "name": "Rafael Docker Tools",
+  "version": "1.0.0",
+  "updatedAt": "2026-06-19",
+  "tools": [
+    {
+      "id": "supabase",
+      "name": "Supabase Self-Host",
+      "description": "Cria e gerencia múltiplas instâncias Supabase com Docker Desktop.",
+      "script": "/tools/installers/supabase.ps1"
+    },
+    {
+      "id": "portainer",
+      "name": "Portainer CE",
+      "description": "Interface web para administrar containers Docker.",
+      "script": "/tools/installers/portainer.ps1"
+    },
+    {
+      "id": "watchtower",
+      "name": "Watchtower",
+      "description": "Atualizador automático de containers Docker.",
+      "script": "/tools/installers/watchtower.ps1"
+    }
+  ]
+}

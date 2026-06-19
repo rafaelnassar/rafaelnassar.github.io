@@ -1,0 +1,175 @@
+# Rafael Nassar Docker Hub
+# Uso:
+#   irm https://rafaelnassar.github.io/docker | iex
+
+$ErrorActionPreference = 'Stop'
+
+try {
+  [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+  $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+} catch {}
+
+try {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+} catch {}
+
+$BaseUrl = 'https://rafaelnassar.github.io'
+$ManifestUrl = "$BaseUrl/tools/docker-tools.json"
+$InstallRoot = Join-Path $HOME 'RafaelDockerTools'
+$CacheDir = Join-Path $InstallRoot 'cache'
+
+function Color {
+  param(
+    [string]$Text,
+    [ConsoleColor]$Foreground = [ConsoleColor]::Gray
+  )
+  Write-Host $Text -ForegroundColor $Foreground
+}
+
+function Header {
+  Clear-Host
+  Write-Host ''
+  Color '╔══════════════════════════════════════════════════════╗' Cyan
+  Color '║              RAFAEL NASSAR - DOCKER HUB             ║' Cyan
+  Color '║        Ferramentas Docker por menu interativo        ║' Cyan
+  Color '╚══════════════════════════════════════════════════════╝' Cyan
+  Write-Host ''
+}
+
+function Pause {
+  Write-Host ''
+  Read-Host 'Pressione ENTER para continuar'
+}
+
+function Ensure-Dirs {
+  New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
+  New-Item -ItemType Directory -Path $CacheDir -Force | Out-Null
+}
+
+function Assert-Windows {
+  if (-not $IsWindows -and $PSVersionTable.PSEdition -eq 'Core') {
+    throw 'Este launcher foi pensado para Windows 10/11.'
+  }
+}
+
+function Get-ToolManifest {
+  Color '➜ Carregando catálogo de ferramentas...' Blue
+
+  try {
+    $manifest = Invoke-RestMethod -Uri $ManifestUrl -UseBasicParsing
+    if (-not $manifest.tools -or $manifest.tools.Count -eq 0) {
+      throw 'Manifesto sem ferramentas.'
+    }
+    return $manifest
+  } catch {
+    throw "Não foi possível carregar o catálogo: $ManifestUrl"
+  }
+}
+
+function Resolve-Url {
+  param([string]$Url)
+
+  if ($Url -match '^https?://') {
+    return $Url
+  }
+
+  if ($Url.StartsWith('/')) {
+    return "$BaseUrl$Url"
+  }
+
+  return "$BaseUrl/$Url"
+}
+
+function Invoke-RemoteInstaller {
+  param(
+    [Parameter(Mandatory = $true)]$Tool
+  )
+
+  $scriptUrl = Resolve-Url $Tool.script
+  $safeId = "$($Tool.id)" -replace '[^a-zA-Z0-9_-]', '-'
+  $localScript = Join-Path $CacheDir "$safeId.ps1"
+
+  Header
+  Color "Ferramenta: $($Tool.name)" White
+  if ($Tool.description) {
+    Write-Host "$($Tool.description)"
+  }
+  Write-Host ''
+  Color "Fonte:" Yellow
+  Write-Host "  $scriptUrl"
+  Write-Host ''
+
+  $confirm = Read-Host 'Executar este instalador? [S/n]'
+  if ($confirm -match '^[nN]') {
+    Color 'Cancelado.' Yellow
+    return
+  }
+
+  Color '➜ Baixando instalador...' Blue
+  Invoke-WebRequest -Uri $scriptUrl -UseBasicParsing -OutFile $localScript
+
+  Color '➜ Executando...' Blue
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $localScript
+
+  Color '✔ Finalizado.' Green
+}
+
+function MainMenu {
+  while ($true) {
+    $manifest = Get-ToolManifest
+
+    Header
+    Color 'Escolha uma ferramenta:' White
+    Write-Host ''
+
+    $tools = @($manifest.tools)
+
+    for ($i = 0; $i -lt $tools.Count; $i++) {
+      $n = $i + 1
+      $tool = $tools[$i]
+      Write-Host ("  [{0}] {1}" -f $n, $tool.name)
+      if ($tool.description) {
+        Color ("      {0}" -f $tool.description) DarkGray
+      }
+    }
+
+    Write-Host ''
+    Write-Host '  [A] Atualizar catálogo'
+    Write-Host '  [0] Sair'
+    Write-Host ''
+
+    $op = Read-Host 'Opção'
+
+    if ($op -eq '0') {
+      return
+    }
+
+    if ($op -match '^[aA]$') {
+      continue
+    }
+
+    $index = 0
+    if ([int]::TryParse($op, [ref]$index)) {
+      if ($index -ge 1 -and $index -le $tools.Count) {
+        Invoke-RemoteInstaller -Tool $tools[$index - 1]
+        Pause
+        continue
+      }
+    }
+
+    Color 'Opção inválida.' Yellow
+    Start-Sleep -Seconds 1
+  }
+}
+
+try {
+  Ensure-Dirs
+  Assert-Windows
+  MainMenu
+} catch {
+  Write-Host ''
+  Color "✖ $($_.Exception.Message)" Red
+  Write-Host ''
+  Pause
+  exit 1
+}
