@@ -1,28 +1,47 @@
 # Installer: Watchtower
 $ErrorActionPreference = 'Stop'
 
-function C([string]$t,[ConsoleColor]$c='Gray'){ Write-Host $t -ForegroundColor $c }
+function Say {
+  param(
+    [string]$Text,
+    [ConsoleColor]$Color = [ConsoleColor]::Gray
+  )
 
-C ''
-C '╔══════════════════════════════════════════════════════╗' Cyan
-C '║                     WATCHTOWER                      ║' Cyan
-C '╚══════════════════════════════════════════════════════╝' Cyan
-C ''
+  try {
+    Write-Host $Text -ForegroundColor $Color
+  } catch {
+    Write-Host $Text
+  }
+}
+
+Clear-Host
+Write-Host ''
+Say '======================================================' Cyan
+Say '                    WATCHTOWER                        ' Cyan
+Say '======================================================' Cyan
+Write-Host ''
 
 $docker = Get-Command docker -ErrorAction SilentlyContinue
 if (-not $docker) {
-  throw 'Docker não encontrado no PATH. Instale/abra o Docker Desktop.'
+  throw 'Docker was not found in PATH. Install/open Docker Desktop.'
 }
 
 docker info *> $null
 if ($LASTEXITCODE -ne 0) {
-  throw 'Docker Desktop não está rodando ou não está acessível.'
+  throw 'Docker Desktop is not running or is not accessible.'
 }
 
-C 'Modo recomendado: apenas monitorar e mostrar logs, sem atualizar automaticamente.' Yellow
-$auto = Read-Host 'Deseja atualizar containers automaticamente? [s/N]'
+$existing = docker ps -a --filter "name=^/watchtower$" --format "{{.Names}}"
+if ($existing -eq 'watchtower') {
+  Say 'Watchtower container already exists.' Yellow
+  docker ps -a --filter "name=^/watchtower$"
+  return
+}
 
-if ($auto -match '^[sS]') {
+Say 'Recommended mode: monitor only. It will not auto-update containers.' Yellow
+$auto = Read-Host 'Auto-update containers? [y/N]'
+
+if ($auto -match '^[yY]') {
   $args = @(
     'run','-d',
     '--name','watchtower',
@@ -44,9 +63,9 @@ if ($auto -match '^[sS]') {
   )
 }
 
-C '➜ Subindo Watchtower...' Blue
+Say 'Starting Watchtower...' Blue
 docker @args | Out-Host
 
-C ''
-C '✔ Watchtower configurado.' Green
-C ''
+Write-Host ''
+Say 'Watchtower configured.' Green
+Write-Host ''

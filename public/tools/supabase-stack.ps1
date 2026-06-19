@@ -1,22 +1,5 @@
-<# 
-.SYNOPSIS
-  Supabase Self-Host Manager para Windows 10/11 com Docker Desktop.
-
-.DESCRIPTION
-  Cria e gerencia múltiplas instâncias self-hosted do Supabase usando Docker Compose.
-  Pensado para Windows puro: não depende de Git Bash, sed, awk, timeout ou /dev/tcp.
-
-.EXAMPLES
-  .\supabase-stack.ps1 doctor
-  .\supabase-stack.ps1 new meuapp
-  .\supabase-stack.ps1 list
-  .\supabase-stack.ps1 status meuapp
-  .\supabase-stack.ps1 logs meuapp auth
-  .\supabase-stack.ps1 secrets meuapp
-  .\supabase-stack.ps1 stop meuapp
-  .\supabase-stack.ps1 start meuapp
-  .\supabase-stack.ps1 reset meuapp
-#>
+# Supabase Self-Host Manager for Windows
+# ASCII-only for Windows PowerShell 5.1 compatibility.
 
 [CmdletBinding()]
 param(
@@ -26,7 +9,7 @@ param(
     'start','stop','restart',
     'status','ps',
     'logs',
-    'secrets','access','acessos',
+    'secrets','access',
     'reset','reinstall',
     'list','ls',
     'clean',
@@ -52,112 +35,77 @@ param(
 
   [switch]$OpenStudio,
 
-  [switch]$Follow,
-
-  [switch]$NoColor
+  [switch]$Follow
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 try {
-  [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-  $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-} catch {}
-
-try {
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 } catch {}
 
-try {
-  $script:BaseDir = (Resolve-Path -LiteralPath $BaseDir -ErrorAction Stop).Path
-} catch {
-  $script:BaseDir = [System.IO.Path]::GetFullPath($BaseDir)
-}
-
+$script:BaseDir = [System.IO.Path]::GetFullPath($BaseDir)
 $script:RepoDir = Join-Path $script:BaseDir '_supabase_repo'
 $script:DockerExe = $null
 $script:GitExe = $null
 
-function Write-Ui {
+function Say {
   param(
-    [Parameter(Mandatory = $true)][string]$Text,
+    [string]$Text,
     [ConsoleColor]$Color = [ConsoleColor]::Gray
   )
 
-  if ($NoColor) {
-    Write-Host $Text
-  } else {
+  try {
     Write-Host $Text -ForegroundColor $Color
+  } catch {
+    Write-Host $Text
   }
 }
 
-function Print-Title {
+function Title {
   Write-Host ''
-  Write-Ui '╔══════════════════════════════════════════════════════╗' Cyan
-  Write-Ui '║              SUPABASE SELF-HOST MANAGER             ║' Cyan
-  Write-Ui '║                    Windows 10/11                    ║' Cyan
-  Write-Ui '╚══════════════════════════════════════════════════════╝' Cyan
+  Say '======================================================' Cyan
+  Say '              SUPABASE SELF-HOST MANAGER              ' Cyan
+  Say '                    Windows 10/11                     ' Cyan
+  Say '======================================================' Cyan
   Write-Host ''
 }
 
-function Ok    { param([string]$Message) Write-Ui "✔ $Message" Green }
-function Warn  { param([string]$Message) Write-Ui "⚠ $Message" Yellow }
-function Info  { param([string]$Message) Write-Ui "➜ $Message" Blue }
-function Fail  { param([string]$Message) Write-Ui "✖ $Message" Red }
+function Ok { param([string]$Message) Say "[OK] $Message" Green }
+function Warn { param([string]$Message) Say "[WARN] $Message" Yellow }
+function Info { param([string]$Message) Say "[INFO] $Message" Blue }
+function Fail { param([string]$Message) Say "[ERROR] $Message" Red }
 
 function Usage {
-  Print-Title
-
+  Title
   @"
-Uso:
+Usage:
 
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 doctor
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 new [nome]
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 start <nome>
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 stop <nome>
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 restart <nome>
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 status <nome>
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 logs <nome> [servico] [-Follow]
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 secrets <nome>
-  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 reset <nome>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 new [name]
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 start <name>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 stop <name>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 restart <name>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 status <name>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 logs <name> [service] [-Follow]
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 secrets <name>
+  powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 reset <name>
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 list
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 clean
   powershell -ExecutionPolicy Bypass -File .\supabase-stack.ps1 update
 
-Exemplos:
+Examples:
 
   .\supabase-stack.ps1 new meuapp
-  .\supabase-stack.ps1 new teste
   .\supabase-stack.ps1 logs meuapp auth
   .\supabase-stack.ps1 secrets meuapp
-  .\supabase-stack.ps1 reset meuapp
 
-Pasta padrão:
+Default folder:
 
   $script:BaseDir
 
 "@ | Write-Host
-}
-
-function Write-Utf8Lines {
-  param(
-    [Parameter(Mandatory = $true)][string]$Path,
-    [Parameter(Mandatory = $true)][string[]]$Lines
-  )
-
-  $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-  [System.IO.File]::WriteAllLines($Path, $Lines, $utf8NoBom)
-}
-
-function Write-Utf8Text {
-  param(
-    [Parameter(Mandatory = $true)][string]$Path,
-    [Parameter(Mandatory = $true)][string]$Text
-  )
-
-  $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-  [System.IO.File]::WriteAllText($Path, $Text, $utf8NoBom)
 }
 
 function Resolve-Docker {
@@ -181,7 +129,7 @@ function Resolve-Docker {
     }
   }
 
-  throw "Docker CLI não encontrado. Instale o Docker Desktop e abra um novo terminal."
+  throw 'Docker CLI not found. Install Docker Desktop and open a new terminal.'
 }
 
 function Resolve-Git {
@@ -209,23 +157,15 @@ function Resolve-Git {
 }
 
 function Start-DockerDesktopIfNeeded {
-  $desktopCandidates = @(
-    (Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe')
-  )
+  $desktop = Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'
 
-  if (${env:ProgramFiles(x86)}) {
-    $desktopCandidates += (Join-Path ${env:ProgramFiles(x86)} 'Docker\Docker\Docker Desktop.exe')
+  if (Test-Path -LiteralPath $desktop) {
+    Info 'Docker is installed, but the daemon did not answer. Opening Docker Desktop...'
+    Start-Process -FilePath $desktop | Out-Null
+    return
   }
 
-  foreach ($candidate in $desktopCandidates) {
-    if ($candidate -and (Test-Path -LiteralPath $candidate)) {
-      Info "Docker instalado, mas o daemon não respondeu. Abrindo Docker Desktop..."
-      Start-Process -FilePath $candidate | Out-Null
-      return
-    }
-  }
-
-  Warn "Docker Desktop não foi encontrado no caminho padrão. Abra o Docker Desktop manualmente."
+  Warn 'Docker Desktop was not found in the default path. Open Docker Desktop manually.'
 }
 
 function Ensure-Docker {
@@ -233,11 +173,10 @@ function Ensure-Docker {
 
   try {
     & $script:DockerExe info *> $null
-    if ($LASTEXITCODE -eq 0) {
-      Ok "Docker está instalado e acessível."
-    } else {
-      throw "Docker info retornou código $LASTEXITCODE"
+    if ($LASTEXITCODE -ne 0) {
+      throw 'docker info failed'
     }
+    Ok 'Docker is installed and accessible.'
   } catch {
     Start-DockerDesktopIfNeeded
 
@@ -246,23 +185,23 @@ function Ensure-Docker {
       try {
         & $script:DockerExe info *> $null
         if ($LASTEXITCODE -eq 0) {
-          Ok "Docker Desktop ficou acessível."
+          Ok 'Docker Desktop is accessible.'
           break
         }
       } catch {}
 
       if ($i -eq 90) {
-        throw "Docker Desktop não está rodando ou não ficou acessível. Abra o Docker Desktop e tente novamente."
+        throw 'Docker Desktop is not running or not accessible. Open Docker Desktop and try again.'
       }
     }
   }
 
   & $script:DockerExe compose version *> $null
   if ($LASTEXITCODE -ne 0) {
-    throw "Docker Compose V2 não está disponível. Atualize o Docker Desktop."
+    throw 'Docker Compose V2 is not available. Update Docker Desktop.'
   }
 
-  Ok "Docker Compose V2 disponível."
+  Ok 'Docker Compose V2 is available.'
 }
 
 function Ensure-BaseDir {
@@ -271,12 +210,11 @@ function Ensure-BaseDir {
 
 function Ensure-Repo {
   Ensure-BaseDir
-
   $script:GitExe = Resolve-Git
 
   if ($script:GitExe) {
     if ((Test-Path -LiteralPath (Join-Path $script:RepoDir '.git')) -and -not $Force) {
-      Info "Atualizando repositório oficial do Supabase..."
+      Info 'Updating official Supabase repository cache...'
       Push-Location $script:RepoDir
       try {
         & $script:GitExe fetch --depth 1 origin $Branch *> $null
@@ -284,25 +222,24 @@ function Ensure-Repo {
       } finally {
         Pop-Location
       }
-      Ok "Repositório atualizado."
+      Ok 'Repository cache updated.'
     } else {
       if (Test-Path -LiteralPath $script:RepoDir) {
-        Warn "Recriando cache local do Supabase..."
         Remove-Item -LiteralPath $script:RepoDir -Recurse -Force
       }
 
-      Info "Baixando repositório oficial do Supabase com Git..."
+      Info 'Cloning official Supabase repository...'
       & $script:GitExe clone --depth 1 --branch $Branch https://github.com/supabase/supabase.git $script:RepoDir
       if ($LASTEXITCODE -ne 0) {
-        throw "Falha ao clonar o repositório oficial do Supabase."
+        throw 'Failed to clone official Supabase repository.'
       }
-      Ok "Repositório baixado."
+      Ok 'Repository cloned.'
     }
   } else {
-    Warn "Git não encontrado. Usando fallback por ZIP do GitHub."
+    Warn 'Git not found. Using GitHub ZIP fallback.'
 
     if ((Test-Path -LiteralPath (Join-Path $script:RepoDir 'docker\docker-compose.yml')) -and -not $Force) {
-      Ok "Cache local do Supabase já existe."
+      Ok 'Supabase repository cache already exists.'
     } else {
       if (Test-Path -LiteralPath $script:RepoDir) {
         Remove-Item -LiteralPath $script:RepoDir -Recurse -Force
@@ -317,39 +254,36 @@ function Ensure-Repo {
 
       try {
         $zipUrl = "https://github.com/supabase/supabase/archive/refs/heads/$Branch.zip"
-        Info "Baixando ZIP do Supabase..."
+        Info 'Downloading Supabase ZIP...'
         Invoke-WebRequest -Uri $zipUrl -UseBasicParsing -OutFile $zipPath
 
-        Info "Extraindo arquivos..."
+        Info 'Extracting files...'
         Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
 
         $folder = Get-ChildItem -LiteralPath $extractPath -Directory | Select-Object -First 1
         if (-not $folder) {
-          throw "ZIP baixado, mas sem pasta extraída."
+          throw 'Downloaded ZIP has no extracted folder.'
         }
 
         Move-Item -LiteralPath $folder.FullName -Destination $script:RepoDir -Force
-        Ok "Repositório baixado por ZIP."
+        Ok 'Repository downloaded by ZIP.'
       } finally {
         Remove-Item -LiteralPath $tmpRoot -Recurse -Force -ErrorAction SilentlyContinue
       }
     }
   }
 
-  $dockerCompose = Join-Path $script:RepoDir 'docker\docker-compose.yml'
-  $envExample = Join-Path $script:RepoDir 'docker\.env.example'
-
-  if (-not (Test-Path -LiteralPath $dockerCompose)) {
-    throw "docker-compose.yml não encontrado. A estrutura do Supabase pode ter mudado."
+  if (-not (Test-Path -LiteralPath (Join-Path $script:RepoDir 'docker\docker-compose.yml'))) {
+    throw 'docker-compose.yml was not found. Supabase repository structure may have changed.'
   }
 
-  if (-not (Test-Path -LiteralPath $envExample)) {
-    throw ".env.example não encontrado. A estrutura do Supabase pode ter mudado."
+  if (-not (Test-Path -LiteralPath (Join-Path $script:RepoDir 'docker\.env.example'))) {
+    throw '.env.example was not found. Supabase repository structure may have changed.'
   }
 }
 
 function New-Slug {
-  param([Parameter(Mandatory = $true)][string]$Text)
+  param([string]$Text)
 
   $slug = $Text.Trim().ToLowerInvariant()
   $slug = $slug -replace '[^a-z0-9]+', '-'
@@ -357,14 +291,14 @@ function New-Slug {
   $slug = $slug -replace '-+$', ''
 
   if ([string]::IsNullOrWhiteSpace($slug)) {
-    throw "Nome inválido. Use letras e números, por exemplo: meuapp."
+    throw 'Invalid name. Use letters and numbers, for example: meuapp.'
   }
 
   return $slug
 }
 
 function Get-InstanceDir {
-  param([Parameter(Mandatory = $true)][string]$InstanceName)
+  param([string]$InstanceName)
   return (Join-Path $script:BaseDir $InstanceName)
 }
 
@@ -372,17 +306,16 @@ function Require-Instance {
   param([string]$InstanceName)
 
   if ([string]::IsNullOrWhiteSpace($InstanceName)) {
-    throw "Informe o nome da instância."
+    throw 'Inform the instance name.'
   }
 
   $slug = New-Slug $InstanceName
   $dir = Get-InstanceDir $slug
 
   if (-not (Test-Path -LiteralPath $dir)) {
-    Fail "Instância não encontrada: $slug"
-    Write-Host ''
+    Fail "Instance not found: $slug"
     List-Instances
-    throw "Instância inexistente."
+    throw 'Instance does not exist.'
   }
 
   return $slug
@@ -390,8 +323,8 @@ function Require-Instance {
 
 function Copy-DirectoryContents {
   param(
-    [Parameter(Mandatory = $true)][string]$Source,
-    [Parameter(Mandatory = $true)][string]$Destination
+    [string]$Source,
+    [string]$Destination
   )
 
   New-Item -ItemType Directory -Path $Destination -Force | Out-Null
@@ -404,8 +337,8 @@ function Copy-DirectoryContents {
 
 function Read-EnvValue {
   param(
-    [Parameter(Mandatory = $true)][string]$File,
-    [Parameter(Mandatory = $true)][string]$Key
+    [string]$File,
+    [string]$Key
   )
 
   if (-not (Test-Path -LiteralPath $File)) {
@@ -425,8 +358,8 @@ function Read-EnvValue {
 
 function Read-EnvValueAny {
   param(
-    [Parameter(Mandatory = $true)][string]$File,
-    [Parameter(Mandatory = $true)][string[]]$Keys
+    [string]$File,
+    [string[]]$Keys
   )
 
   foreach ($key in $Keys) {
@@ -441,9 +374,9 @@ function Read-EnvValueAny {
 
 function Set-EnvValue {
   param(
-    [Parameter(Mandatory = $true)][string]$File,
-    [Parameter(Mandatory = $true)][string]$Key,
-    [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Value
+    [string]$File,
+    [string]$Key,
+    [string]$Value
   )
 
   $lines = @()
@@ -468,11 +401,11 @@ function Set-EnvValue {
     $updated.Add("$Key=$Value")
   }
 
-  Write-Utf8Lines -Path $File -Lines $updated.ToArray()
+  [System.IO.File]::WriteAllLines($File, $updated.ToArray(), [System.Text.Encoding]::ASCII)
 }
 
 function Test-PortUsed {
-  param([Parameter(Mandatory = $true)][int]$Port)
+  param([int]$Port)
 
   $client = New-Object System.Net.Sockets.TcpClient
 
@@ -493,51 +426,11 @@ function Test-PortUsed {
   }
 }
 
-function Get-ReservedPorts {
-  $ports = New-Object System.Collections.Generic.HashSet[int]
-
-  if (-not (Test-Path -LiteralPath $script:BaseDir)) {
-    return @()
-  }
-
-  $keys = @(
-    'KONG_HTTP_PORT',
-    'KONG_HTTPS_PORT',
-    'POSTGRES_PORT',
-    'POOLER_PROXY_PORT_TRANSACTION'
-  )
-
-  Get-ChildItem -LiteralPath $script:BaseDir -Directory -Force -ErrorAction SilentlyContinue | ForEach-Object {
-    if ($_.Name -eq '_supabase_repo') {
-      return
-    }
-
-    $envFile = Join-Path $_.FullName '.env'
-    if (-not (Test-Path -LiteralPath $envFile)) {
-      return
-    }
-
-    foreach ($key in $keys) {
-      $raw = Read-EnvValue -File $envFile -Key $key
-      $port = 0
-      if ([int]::TryParse($raw, [ref]$port)) {
-        [void]$ports.Add($port)
-      }
-    }
-  }
-
-  return @($ports)
-}
-
 function Get-FreePort {
-  param(
-    [Parameter(Mandatory = $true)][int]$Start,
-    [int[]]$Reserved = @()
-  )
+  param([int]$Start)
 
   $port = $Start
-
-  while ((Test-PortUsed -Port $port) -or ($Reserved -contains $port)) {
+  while (Test-PortUsed -Port $port) {
     $port++
   }
 
@@ -545,12 +438,12 @@ function Get-FreePort {
 }
 
 function Patch-DockerComposeContainerNames {
-  param([Parameter(Mandatory = $true)][string]$File)
+  param([string]$File)
 
   $text = [System.IO.File]::ReadAllText($File)
 
   if ($text.Contains('${INSTANCE_NAME}-')) {
-    Ok "docker-compose.yml já está com containers isolados."
+    Ok 'docker-compose.yml already has isolated container names.'
     return
   }
 
@@ -573,28 +466,12 @@ function Patch-DockerComposeContainerNames {
     }
   )
 
-  Write-Utf8Text -Path $File -Text $patched
-  Ok "docker-compose.yml ajustado para múltiplas instâncias."
-}
-
-function Enable-NewAuthComposeVariables {
-  param([Parameter(Mandatory = $true)][string]$File)
-
-  if (-not (Test-Path -LiteralPath $File)) {
-    return
-  }
-
-  $text = [System.IO.File]::ReadAllText($File)
-
-  $text = [regex]::Replace($text, '(?m)^(\s*)#\s*(GOTRUE_JWT_KEYS:\s*\$\{JWT_KEYS:-\[\]\})', '$1$2')
-  $text = [regex]::Replace($text, '(?m)^(\s*)#\s*(API_JWT_JWKS:\s*\$\{JWT_JWKS:-\{"keys":\[\]\}\})', '$1$2')
-  $text = [regex]::Replace($text, '(?m)^(\s*)#\s*(JWT_JWKS:\s*\$\{JWT_JWKS:-\{"keys":\[\]\}\})', '$1$2')
-
-  Write-Utf8Text -Path $File -Text $text
+  [System.IO.File]::WriteAllText($File, $patched, [System.Text.Encoding]::ASCII)
+  Ok 'docker-compose.yml patched for multiple instances.'
 }
 
 function New-RandomBytes {
-  param([Parameter(Mandatory = $true)][int]$Count)
+  param([int]$Count)
 
   $bytes = New-Object byte[] $Count
   $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
@@ -609,7 +486,7 @@ function New-RandomBytes {
 }
 
 function ConvertTo-Base64Url {
-  param([Parameter(Mandatory = $true)]$Value)
+  param($Value)
 
   if ($Value -is [string]) {
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
@@ -621,27 +498,24 @@ function ConvertTo-Base64Url {
 }
 
 function New-RandomHex {
-  param([Parameter(Mandatory = $true)][int]$Bytes)
-
+  param([int]$Bytes)
   return ([BitConverter]::ToString((New-RandomBytes -Count $Bytes)) -replace '-', '').ToLowerInvariant()
 }
 
 function New-RandomBase64 {
-  param([Parameter(Mandatory = $true)][int]$Bytes)
-
+  param([int]$Bytes)
   return [Convert]::ToBase64String((New-RandomBytes -Count $Bytes))
 }
 
 function New-Hs256Jwt {
   param(
-    [Parameter(Mandatory = $true)][string]$Role,
-    [Parameter(Mandatory = $true)][string]$JwtSecret
+    [string]$Role,
+    [string]$JwtSecret
   )
 
   $header = '{"alg":"HS256","typ":"JWT"}'
   $iat = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
   $exp = $iat + (5 * 365 * 24 * 3600)
-
   $payload = '{"role":"' + $Role + '","iss":"supabase","iat":' + $iat + ',"exp":' + $exp + '}'
 
   $encodedHeader = ConvertTo-Base64Url $header
@@ -657,156 +531,13 @@ function New-Hs256Jwt {
   }
 
   $encodedSignature = ConvertTo-Base64Url $signatureBytes
-
   return "$signedContent.$encodedSignature"
 }
 
-function Get-KeyValueMapFromLines {
-  param([Parameter(Mandatory = $true)][string[]]$Lines)
-
-  $map = @{}
-
-  foreach ($line in $Lines) {
-    if ($line -match '^([A-Z0-9_]+)=(.*)$') {
-      $map[$Matches[1]] = $Matches[2]
-    }
-  }
-
-  return $map
-}
-
-function New-AsymmetricAuthKeys {
-  param([Parameter(Mandatory = $true)][string]$JwtSecret)
-
-  Info "Gerando chaves novas de Auth com node:22-alpine..."
-
-  & $script:DockerExe image inspect node:22-alpine *> $null
-  if ($LASTEXITCODE -ne 0) {
-    & $script:DockerExe pull node:22-alpine
-    if ($LASTEXITCODE -ne 0) {
-      throw "Não foi possível baixar node:22-alpine para gerar chaves de Auth."
-    }
-  }
-
-  $js = @'
-const crypto = require("crypto");
-
-const jwtSecret = process.argv[1];
-
-const { privateKey } = crypto.generateKeyPairSync("ec", { namedCurve: "P-256" });
-const jwkPrivate = privateKey.export({ format: "jwk" });
-const kid = crypto.randomUUID();
-
-const octKey = {
-  kty: "oct",
-  k: Buffer.from(jwtSecret).toString("base64url"),
-  alg: "HS256"
-};
-
-const jwksKeypair = {
-  keys: [
-    {
-      kty: "EC",
-      kid,
-      use: "sig",
-      key_ops: ["sign", "verify"],
-      alg: "ES256",
-      ext: true,
-      crv: jwkPrivate.crv,
-      x: jwkPrivate.x,
-      y: jwkPrivate.y,
-      d: jwkPrivate.d
-    },
-    octKey
-  ]
-};
-
-const jwksPublic = {
-  keys: [
-    {
-      kty: "EC",
-      kid,
-      use: "sig",
-      key_ops: ["verify"],
-      alg: "ES256",
-      ext: true,
-      crv: jwkPrivate.crv,
-      x: jwkPrivate.x,
-      y: jwkPrivate.y
-    },
-    octKey
-  ]
-};
-
-function signES256(payload) {
-  const header = { alg: "ES256", typ: "JWT", kid };
-  const b64Header = Buffer.from(JSON.stringify(header)).toString("base64url");
-  const b64Payload = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const data = b64Header + "." + b64Payload;
-  const sig = crypto
-    .sign("SHA256", Buffer.from(data), { key: privateKey, dsaEncoding: "ieee-p1363" })
-    .toString("base64url");
-
-  return data + "." + sig;
-}
-
-const iat = Math.floor(Date.now() / 1000);
-const exp = iat + 5 * 365 * 24 * 3600;
-const anonJwt = signES256({ role: "anon", iss: "supabase", iat, exp });
-const serviceJwt = signES256({ role: "service_role", iss: "supabase", iat, exp });
-
-const PROJECT_REF = "supabase-self-hosted";
-
-function generateOpaqueKey(prefix) {
-  const random = crypto.randomBytes(17).toString("base64url").slice(0, 22);
-  const intermediate = prefix + random;
-  const checksum = crypto
-    .createHash("sha256")
-    .update(PROJECT_REF + "|" + intermediate)
-    .digest("base64url")
-    .slice(0, 8);
-
-  return intermediate + "_" + checksum;
-}
-
-console.log("SUPABASE_PUBLISHABLE_KEY=" + generateOpaqueKey("sb_publishable_"));
-console.log("SUPABASE_SECRET_KEY=" + generateOpaqueKey("sb_secret_"));
-console.log("ANON_KEY_ASYMMETRIC=" + anonJwt);
-console.log("SERVICE_ROLE_KEY_ASYMMETRIC=" + serviceJwt);
-console.log("JWT_KEYS=" + JSON.stringify(jwksKeypair.keys));
-console.log("JWT_JWKS=" + JSON.stringify(jwksPublic));
-'@
-
-  $output = & $script:DockerExe run --rm node:22-alpine node -e $js $JwtSecret
-
-  if ($LASTEXITCODE -ne 0) {
-    throw "Falha ao gerar chaves novas de Auth."
-  }
-
-  $map = Get-KeyValueMapFromLines -Lines @($output)
-
-  $required = @(
-    'SUPABASE_PUBLISHABLE_KEY',
-    'SUPABASE_SECRET_KEY',
-    'ANON_KEY_ASYMMETRIC',
-    'SERVICE_ROLE_KEY_ASYMMETRIC',
-    'JWT_KEYS',
-    'JWT_JWKS'
-  )
-
-  foreach ($key in $required) {
-    if (-not $map.ContainsKey($key)) {
-      throw "Geração de Auth incompleta. Chave ausente: $key"
-    }
-  }
-
-  return $map
-}
-
 function Generate-Secrets {
-  param([Parameter(Mandatory = $true)][string]$EnvFile)
+  param([string]$EnvFile)
 
-  Info "Gerando secrets novos para esta instalação..."
+  Info 'Generating instance secrets...'
 
   $jwtSecret = New-RandomBase64 -Bytes 30
 
@@ -830,19 +561,21 @@ function Generate-Secrets {
     Set-EnvValue -File $EnvFile -Key $key -Value $secrets[$key]
   }
 
-  $newAuth = New-AsymmetricAuthKeys -JwtSecret $jwtSecret
-
-  foreach ($key in $newAuth.Keys) {
-    Set-EnvValue -File $EnvFile -Key $key -Value $newAuth[$key]
+  if (-not (Read-EnvValue -File $EnvFile -Key 'SUPABASE_PUBLISHABLE_KEY')) {
+    Set-EnvValue -File $EnvFile -Key 'SUPABASE_PUBLISHABLE_KEY' -Value ('sb_publishable_' + (New-RandomHex -Bytes 16))
   }
 
-  Ok "Secrets gerados e gravados no .env."
+  if (-not (Read-EnvValue -File $EnvFile -Key 'SUPABASE_SECRET_KEY')) {
+    Set-EnvValue -File $EnvFile -Key 'SUPABASE_SECRET_KEY' -Value ('sb_secret_' + (New-RandomHex -Bytes 24))
+  }
+
+  Ok 'Secrets generated.'
 }
 
 function Invoke-Compose {
   param(
-    [Parameter(Mandatory = $true)][string]$InstanceName,
-    [Parameter(Mandatory = $true)][string[]]$ComposeArgs,
+    [string]$InstanceName,
+    [string[]]$ComposeArgs,
     [switch]$AllowFailure
   )
 
@@ -857,82 +590,45 @@ function Invoke-Compose {
   }
 
   if (($code -ne 0) -and (-not $AllowFailure)) {
-    throw "docker compose falhou com código $code."
+    throw "docker compose failed with code $code."
   }
 
   return $code
 }
 
-function Get-ComposeStatus {
-  param([Parameter(Mandatory = $true)][string]$InstanceName)
-
-  $dir = Get-InstanceDir $InstanceName
-  $items = @()
-
-  Push-Location $dir
-  try {
-    $raw = & $script:DockerExe compose -p $InstanceName ps --format json 2>$null
-
-    if ($LASTEXITCODE -ne 0 -or -not $raw) {
-      return @()
-    }
-
-    foreach ($line in @($raw)) {
-      if ([string]::IsNullOrWhiteSpace($line)) {
-        continue
-      }
-
-      try {
-        $parsed = $line | ConvertFrom-Json
-        $items += $parsed
-      } catch {
-        # Alguns builds podem devolver JSON em formato diferente.
-      }
-    }
-  } finally {
-    Pop-Location
-  }
-
-  return $items
-}
-
 function Wait-Health {
-  param([Parameter(Mandatory = $true)][string]$InstanceName)
+  param([string]$InstanceName)
 
-  Info "Aguardando serviços iniciarem..."
+  Info 'Waiting for services to start...'
 
-  for ($i = 1; $i -le 90; $i++) {
-    $items = @(Get-ComposeStatus -InstanceName $InstanceName)
+  for ($i = 1; $i -le 60; $i++) {
+    $output = ''
+    try {
+      $output = (& $script:DockerExe compose -p $InstanceName ps 2>$null | Out-String)
+    } catch {}
 
-    if ($items.Count -gt 0) {
-      $unhealthy = @($items | Where-Object { "$($_.Health)" -eq 'unhealthy' })
-      if ($unhealthy.Count -gt 0) {
-        Warn "Algum container ficou unhealthy."
-        Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('ps') -AllowFailure | Out-Null
-        Write-Host ''
-        Warn "Últimos logs do Auth:"
-        Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('logs','auth','--tail','120') -AllowFailure | Out-Null
-        throw "Serviço unhealthy."
-      }
+    if ($output -match 'unhealthy') {
+      Warn 'Some container became unhealthy.'
+      Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('ps') -AllowFailure | Out-Null
+      Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('logs','auth','--tail','120') -AllowFailure | Out-Null
+      throw 'Service unhealthy.'
+    }
 
-      $notRunning = @($items | Where-Object { "$($_.State)" -notin @('running', 'exited') })
-      $startingHealth = @($items | Where-Object { "$($_.Health)" -eq 'starting' })
-
-      if (($notRunning.Count -eq 0) -and ($startingHealth.Count -eq 0)) {
-        Ok "Serviços iniciados."
-        return
-      }
+    if ($output -match 'healthy' -or $output -match 'Up') {
+      Start-Sleep -Seconds 2
+      Ok 'Services started.'
+      return
     }
 
     Start-Sleep -Seconds 2
   }
 
-  Warn "Tempo de espera atingido. Mostrando status atual:"
+  Warn 'Wait timeout reached. Current status:'
   Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('ps') -AllowFailure | Out-Null
 }
 
 function Show-Access {
-  param([Parameter(Mandatory = $true)][string]$InstanceName)
+  param([string]$InstanceName)
 
   $dir = Get-InstanceDir $InstanceName
   $envFile = Join-Path $dir '.env'
@@ -947,28 +643,28 @@ function Show-Access {
   $poolerPort = Read-EnvValue -File $envFile -Key 'POOLER_PROXY_PORT_TRANSACTION'
 
   Write-Host ''
-  Write-Ui '╔══════════════════════════════════════════════════════╗' Green
-  Write-Ui '║                 INSTÂNCIA PRONTA                    ║' Green
-  Write-Ui '╚══════════════════════════════════════════════════════╝' Green
+  Say '======================================================' Green
+  Say '                    INSTANCE READY                    ' Green
+  Say '======================================================' Green
   Write-Host ''
-  Write-Host ("Nome:               {0}" -f $InstanceName)
-  Write-Host ("Pasta:              {0}" -f $dir)
+  Write-Host ("Name:               {0}" -f $InstanceName)
+  Write-Host ("Folder:             {0}" -f $dir)
   Write-Host ''
   Write-Host ("Studio:             {0}" -f $studioUrl)
-  Write-Host ("Usuário Studio:     {0}" -f ($(if ($dashboardUser) { $dashboardUser } else { 'supabase' })))
-  Write-Host ("Senha Studio:       {0}" -f $dashboardPass)
+  Write-Host ("Studio user:        {0}" -f ($(if ($dashboardUser) { $dashboardUser } else { 'supabase' })))
+  Write-Host ("Studio password:    {0}" -f $dashboardPass)
   Write-Host ''
   Write-Host ("Supabase URL:       {0}" -f $studioUrl)
-  Write-Host ("Public/Anon Key:    {0}" -f $publicKey)
-  Write-Host ("Secret/Service Key: {0}" -f $secretKey)
+  Write-Host ("Public/Anon key:    {0}" -f $publicKey)
+  Write-Host ("Secret/Service key: {0}" -f $secretKey)
   Write-Host ''
-  Write-Host ("Postgres Host:      localhost")
-  Write-Host ("Postgres Port:      {0}" -f $dbPort)
-  Write-Host ("Postgres User:      postgres")
-  Write-Host ("Postgres Password:  {0}" -f $dbPass)
-  Write-Host ("Pooler Port:        {0}" -f $poolerPort)
+  Write-Host ("Postgres host:      localhost")
+  Write-Host ("Postgres port:      {0}" -f $dbPort)
+  Write-Host ("Postgres user:      postgres")
+  Write-Host ("Postgres password:  {0}" -f $dbPass)
+  Write-Host ("Pooler port:        {0}" -f $poolerPort)
   Write-Host ''
-  Warn "Guarde esses dados. Eles pertencem somente a esta instância."
+  Warn 'Save these values. They belong only to this instance.'
   Write-Host ''
 
   Invoke-Compose -InstanceName $InstanceName -ComposeArgs @('ps') -AllowFailure | Out-Null
@@ -993,50 +689,40 @@ function Create-Instance {
 
   if (Test-Path -LiteralPath $dir) {
     if ($Force) {
-      Warn "Removendo instância existente por causa de -Force: $instanceName"
+      Warn "Removing existing instance because -Force was used: $instanceName"
       Invoke-Compose -InstanceName $instanceName -ComposeArgs @('down','-v','--remove-orphans') -AllowFailure | Out-Null
       Remove-Item -LiteralPath $dir -Recurse -Force
     } else {
       $suffix = Get-Date -Format 'HHmmss'
-      Warn "Já existe uma instância chamada '$instanceName'."
+      Warn "Instance already exists: $instanceName"
       $instanceName = "$instanceName-$suffix"
       $dir = Get-InstanceDir $instanceName
-      Warn "Criando nova instância como: $instanceName"
+      Warn "Creating new instance as: $instanceName"
     }
   }
 
-  Print-Title
-
-  Info "Criando instância: $instanceName"
+  Title
+  Info "Creating instance: $instanceName"
   New-Item -ItemType Directory -Path $dir -Force | Out-Null
 
-  Info "Copiando arquivos Docker do Supabase..."
+  Info 'Copying Supabase Docker files...'
   Copy-DirectoryContents -Source (Join-Path $script:RepoDir 'docker') -Destination $dir
-  Ok "Arquivos copiados."
+  Ok 'Files copied.'
 
   $envExample = Join-Path $dir '.env.example'
   $envFile = Join-Path $dir '.env'
   $composeFile = Join-Path $dir 'docker-compose.yml'
 
   if (-not (Test-Path -LiteralPath $envExample)) {
-    throw ".env.example não encontrado na pasta da instância."
+    throw '.env.example not found in instance folder.'
   }
 
   Copy-Item -LiteralPath $envExample -Destination $envFile -Force
 
-  $reserved = @(Get-ReservedPorts)
-
-  $studioPort = Get-FreePort -Start 8000 -Reserved $reserved
-  $reserved += $studioPort
-
-  $httpsPort = Get-FreePort -Start 8443 -Reserved $reserved
-  $reserved += $httpsPort
-
-  $dbPort = Get-FreePort -Start 54322 -Reserved $reserved
-  $reserved += $dbPort
-
-  $poolerPort = Get-FreePort -Start 6543 -Reserved $reserved
-  $reserved += $poolerPort
+  $studioPort = Get-FreePort -Start 8000
+  $httpsPort = Get-FreePort -Start 8443
+  $dbPort = Get-FreePort -Start 54322
+  $poolerPort = Get-FreePort -Start 6543
 
   Set-EnvValue -File $envFile -Key 'INSTANCE_NAME' -Value $instanceName
   Set-EnvValue -File $envFile -Key 'COMPOSE_PROJECT_NAME' -Value $instanceName
@@ -1052,18 +738,15 @@ function Create-Instance {
   Set-EnvValue -File $envFile -Key 'DASHBOARD_USERNAME' -Value 'supabase'
 
   Patch-DockerComposeContainerNames -File $composeFile
-  Enable-NewAuthComposeVariables -File $composeFile
   Generate-Secrets -EnvFile $envFile
 
   if (-not $NoPull) {
-    Info "Baixando imagens Docker..."
+    Info 'Pulling Docker images...'
     Invoke-Compose -InstanceName $instanceName -ComposeArgs @('pull') | Out-Null
-    Ok "Imagens baixadas."
-  } else {
-    Warn "Pulando docker compose pull por causa de -NoPull."
+    Ok 'Docker images pulled.'
   }
 
-  Info "Subindo containers..."
+  Info 'Starting containers...'
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('up','-d') | Out-Null
 
   Wait-Health -InstanceName $instanceName
@@ -1075,8 +758,8 @@ function Start-Instance {
 
   Ensure-Docker
   $instanceName = Require-Instance $RawName
-  Print-Title
-  Info "Subindo instância: $instanceName"
+  Title
+  Info "Starting instance: $instanceName"
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('up','-d') | Out-Null
   Wait-Health -InstanceName $instanceName
   Show-Access -InstanceName $instanceName
@@ -1087,10 +770,10 @@ function Stop-Instance {
 
   Ensure-Docker
   $instanceName = Require-Instance $RawName
-  Print-Title
-  Info "Parando instância: $instanceName"
+  Title
+  Info "Stopping instance: $instanceName"
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('down') | Out-Null
-  Ok "Instância parada."
+  Ok 'Instance stopped.'
 }
 
 function Restart-Instance {
@@ -1098,8 +781,8 @@ function Restart-Instance {
 
   Ensure-Docker
   $instanceName = Require-Instance $RawName
-  Print-Title
-  Info "Reiniciando instância: $instanceName"
+  Title
+  Info "Restarting instance: $instanceName"
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('down') | Out-Null
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('up','-d') | Out-Null
   Wait-Health -InstanceName $instanceName
@@ -1111,7 +794,7 @@ function Status-Instance {
 
   Ensure-Docker
   $instanceName = Require-Instance $RawName
-  Print-Title
+  Title
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('ps') | Out-Null
 }
 
@@ -1123,7 +806,7 @@ function Logs-Instance {
 
   Ensure-Docker
   $instanceName = Require-Instance $RawName
-  Print-Title
+  Title
 
   $args = @('logs','--tail','180')
 
@@ -1143,7 +826,7 @@ function Secrets-Instance {
 
   Ensure-Docker
   $instanceName = Require-Instance $RawName
-  Print-Title
+  Title
   Show-Access -InstanceName $instanceName
 }
 
@@ -1154,24 +837,24 @@ function Reset-Instance {
   $instanceName = Require-Instance $RawName
   $dir = Get-InstanceDir $instanceName
 
-  Print-Title
-  Warn "Isso vai apagar containers, volumes e dados da instância: $instanceName"
-  $confirm = Read-Host 'Digite APAGAR para confirmar'
+  Title
+  Warn "This will delete containers, volumes and data for instance: $instanceName"
+  $confirm = Read-Host 'Type DELETE to confirm'
 
-  if ($confirm -ne 'APAGAR') {
-    Warn "Cancelado."
+  if ($confirm -ne 'DELETE') {
+    Warn 'Canceled.'
     return
   }
 
-  Info "Removendo containers e volumes..."
+  Info 'Removing containers and volumes...'
   Invoke-Compose -InstanceName $instanceName -ComposeArgs @('down','-v','--remove-orphans') -AllowFailure | Out-Null
 
-  Info "Removendo pasta da instância..."
+  Info 'Removing instance folder...'
   Remove-Item -LiteralPath $dir -Recurse -Force
 
-  Ok "Instância removida."
+  Ok 'Instance removed.'
   Write-Host ''
-  Info "Criando instalação nova com o mesmo nome..."
+  Info 'Creating a fresh install with the same name...'
   Create-Instance -RawName $instanceName
 }
 
@@ -1179,7 +862,7 @@ function List-Instances {
   Ensure-BaseDir
 
   Write-Host ''
-  Write-Ui 'Instâncias:' White
+  Say 'Instances:' White
 
   $rows = @()
 
@@ -1194,15 +877,15 @@ function List-Instances {
     }
 
     $rows += [pscustomobject]@{
-      Nome = $_.Name
+      Name = $_.Name
       Studio = (Read-EnvValue -File $envFile -Key 'SUPABASE_PUBLIC_URL')
       Postgres = ('localhost:' + (Read-EnvValue -File $envFile -Key 'POSTGRES_PORT'))
-      Pasta = $_.FullName
+      Folder = $_.FullName
     }
   }
 
   if ($rows.Count -eq 0) {
-    Write-Host '  Nenhuma instância encontrada.'
+    Write-Host '  No instances found.'
     return
   }
 
@@ -1211,13 +894,13 @@ function List-Instances {
 
 function Clean-Docker {
   Ensure-Docker
-  Print-Title
-  Warn "Limpeza segura: remove containers parados, networks órfãs, build cache e imagens dangling."
-  Warn "Não remove volumes de instâncias ativas."
-  $confirm = Read-Host 'Digite LIMPAR para confirmar'
+  Title
+  Warn 'Safe cleanup: removes stopped containers, orphan networks, build cache and dangling images.'
+  Warn 'It does not remove active instance volumes.'
+  $confirm = Read-Host 'Type CLEAN to confirm'
 
-  if ($confirm -ne 'LIMPAR') {
-    Warn "Cancelado."
+  if ($confirm -ne 'CLEAN') {
+    Warn 'Canceled.'
     return
   }
 
@@ -1226,19 +909,19 @@ function Clean-Docker {
   & $script:DockerExe image prune -f | Out-Host
   & $script:DockerExe builder prune -f | Out-Host
 
-  Ok "Limpeza concluída."
+  Ok 'Cleanup completed.'
 }
 
 function Update-Repo {
   Ensure-Docker
   Ensure-Repo
-  Ok "Cache do Supabase pronto em: $script:RepoDir"
+  Ok "Supabase cache ready at: $script:RepoDir"
 }
 
 function Doctor {
-  Print-Title
+  Title
 
-  Write-Ui 'Ambiente:' White
+  Say 'Environment:' White
   Write-Host ("  Windows:      {0}" -f ([Environment]::OSVersion.VersionString))
   Write-Host ("  PowerShell:   {0}" -f ($PSVersionTable.PSVersion.ToString()))
   Write-Host ("  BaseDir:      {0}" -f $script:BaseDir)
@@ -1246,19 +929,19 @@ function Doctor {
 
   try {
     $script:DockerExe = Resolve-Docker
-    Ok "Docker CLI encontrado: $script:DockerExe"
+    Ok "Docker CLI found: $script:DockerExe"
 
     & $script:DockerExe --version | Write-Host
 
     try {
       & $script:DockerExe info *> $null
       if ($LASTEXITCODE -eq 0) {
-        Ok "Docker daemon acessível."
+        Ok 'Docker daemon accessible.'
       } else {
-        Warn "Docker daemon não respondeu."
+        Warn 'Docker daemon did not answer.'
       }
     } catch {
-      Warn "Docker daemon não respondeu."
+      Warn 'Docker daemon did not answer.'
     }
 
     & $script:DockerExe compose version | Write-Host
@@ -1270,26 +953,10 @@ function Doctor {
 
   $script:GitExe = Resolve-Git
   if ($script:GitExe) {
-    Ok "Git encontrado: $script:GitExe"
+    Ok "Git found: $script:GitExe"
     & $script:GitExe --version | Write-Host
   } else {
-    Warn "Git não encontrado. O script usará fallback por ZIP."
-  }
-
-  Write-Host ''
-
-  Ensure-BaseDir
-  $reserved = @(Get-ReservedPorts)
-  if ($reserved.Count -gt 0) {
-    Info ("Portas já reservadas por instâncias: " + (($reserved | Sort-Object) -join ', '))
-  } else {
-    Info "Nenhuma porta reservada por instâncias existentes."
-  }
-
-  $drive = Get-PSDrive -Name ([System.IO.Path]::GetPathRoot($script:BaseDir).Substring(0,1)) -ErrorAction SilentlyContinue
-  if ($drive) {
-    $freeGb = [math]::Round($drive.Free / 1GB, 2)
-    Info "Espaço livre no disco da pasta base: $freeGb GB"
+    Warn 'Git not found. ZIP fallback will be used.'
   }
 
   List-Instances
@@ -1327,7 +994,7 @@ try {
       break
     }
 
-    { $_ -in @('secrets','access','acessos') } {
+    { $_ -in @('secrets','access') } {
       Secrets-Instance -RawName $Name
       break
     }
@@ -1338,7 +1005,7 @@ try {
     }
 
     { $_ -in @('list','ls') } {
-      Print-Title
+      Title
       List-Instances
       break
     }

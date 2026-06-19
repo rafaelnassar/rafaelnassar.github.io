@@ -1,31 +1,52 @@
 # Installer: Portainer CE
 $ErrorActionPreference = 'Stop'
 
-function C([string]$t,[ConsoleColor]$c='Gray'){ Write-Host $t -ForegroundColor $c }
+function Say {
+  param(
+    [string]$Text,
+    [ConsoleColor]$Color = [ConsoleColor]::Gray
+  )
 
-C ''
-C '╔══════════════════════════════════════════════════════╗' Cyan
-C '║                    PORTAINER CE                     ║' Cyan
-C '╚══════════════════════════════════════════════════════╝' Cyan
-C ''
+  try {
+    Write-Host $Text -ForegroundColor $Color
+  } catch {
+    Write-Host $Text
+  }
+}
+
+Clear-Host
+Write-Host ''
+Say '======================================================' Cyan
+Say '                    PORTAINER CE                      ' Cyan
+Say '======================================================' Cyan
+Write-Host ''
 
 $docker = Get-Command docker -ErrorAction SilentlyContinue
 if (-not $docker) {
-  throw 'Docker não encontrado no PATH. Instale/abra o Docker Desktop.'
+  throw 'Docker was not found in PATH. Install/open Docker Desktop.'
 }
 
 docker info *> $null
 if ($LASTEXITCODE -ne 0) {
-  throw 'Docker Desktop não está rodando ou não está acessível.'
+  throw 'Docker Desktop is not running or is not accessible.'
 }
 
-$port = Read-Host 'Porta do Portainer [9000]'
-if ([string]::IsNullOrWhiteSpace($port)) { $port = '9000' }
+$existing = docker ps -a --filter "name=^/portainer$" --format "{{.Names}}"
+if ($existing -eq 'portainer') {
+  Say 'Portainer container already exists.' Yellow
+  docker ps -a --filter "name=^/portainer$"
+  return
+}
 
-C '➜ Criando volume portainer_data...' Blue
+$port = Read-Host 'Portainer port [9000]'
+if ([string]::IsNullOrWhiteSpace($port)) {
+  $port = '9000'
+}
+
+Say 'Creating volume portainer_data...' Blue
 docker volume create portainer_data | Out-Host
 
-C '➜ Subindo Portainer...' Blue
+Say 'Starting Portainer...' Blue
 docker run -d `
   --name portainer `
   --restart=always `
@@ -34,6 +55,6 @@ docker run -d `
   -v portainer_data:/data `
   portainer/portainer-ce:latest | Out-Host
 
-C ''
-C "✔ Portainer disponível em: http://localhost:$port" Green
-C ''
+Write-Host ''
+Say "Portainer is available at: http://localhost:$port" Green
+Write-Host ''
