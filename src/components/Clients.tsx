@@ -2,13 +2,14 @@ import Autoplay from 'embla-carousel-autoplay'
 import useEmblaCarousel from 'embla-carousel-react'
 import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useInView } from 'framer-motion'
+import { useInView, useReducedMotion } from 'framer-motion'
 import { Reveal } from '@/components/shared/Reveal'
 import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Card } from '@/components/shared/Card'
 import { TagPillList } from '@/components/shared/TagPill'
 import { OutlineLink } from '@/components/shared/OutlineLink'
 import { iconButtonClassName } from '@/components/shared/iconButtonStyles'
+import { sectionClassName, sectionContentClassName } from '@/components/shared/sectionStyles'
 import { cn, focusRing } from '@/lib/utils'
 import { clients } from '@/data/clients'
 import { useLang } from '@/lib/i18n'
@@ -20,6 +21,7 @@ export const Clients = () => {
   const sectionRef = useRef<HTMLElement>(null)
   // Pausa autoplay quando seção sai de viewport (economia de timer + sem rebobinar enquanto fora da tela)
   const isInView = useInView(sectionRef, { margin: '-30% 0px' })
+  const reduceMotion = useReducedMotion()
 
   const autoplayRef = useRef(
     Autoplay({ delay: 4500, stopOnInteraction: false, stopOnMouseEnter: true })
@@ -67,21 +69,21 @@ export const Clients = () => {
     }
   }, [emblaApi])
 
-  // Pause/resume autoplay com base no viewport
+  // Pause/resume autoplay com base no viewport + prefers-reduced-motion
   useEffect(() => {
     if (!emblaApi || !hasMultiple) return
     const autoplay = emblaApi.plugins().autoplay
     if (!autoplay) return
-    if (isInView) autoplay.play()
+    if (isInView && !reduceMotion) autoplay.play()
     else autoplay.stop()
-  }, [isInView, emblaApi, hasMultiple])
+  }, [isInView, emblaApi, hasMultiple, reduceMotion])
 
   return (
     <section
       id="clientes"
       ref={sectionRef}
       aria-labelledby="clientes-title"
-      className="py-20 sm:py-24 bg-secondary/30"
+      className={sectionClassName('plain')}
     >
       <div className="container mx-auto px-6">
         <SectionHeading
@@ -91,7 +93,7 @@ export const Clients = () => {
           subtitle={tx.clients.subtitle}
         />
 
-        <div className="max-w-3xl mx-auto relative">
+        <div className={cn(sectionContentClassName, 'relative')}>
           {hasMultiple && (
             <>
               <button
@@ -210,7 +212,7 @@ export const Clients = () => {
                   <span
                     aria-hidden
                     className={cn(
-                      'block h-2 rounded-full transition-all duration-300',
+                      'block h-2 rounded-full transition-all duration-200',
                       index === selectedIndex
                         ? 'bg-foreground w-6'
                         : 'bg-border group-hover:bg-muted-foreground w-2'

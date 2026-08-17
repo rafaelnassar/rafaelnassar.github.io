@@ -1,4 +1,4 @@
-import { motion, type HTMLMotionProps } from 'framer-motion'
+import { motion, useReducedMotion, type HTMLMotionProps } from 'framer-motion'
 import { type ReactNode } from 'react'
 import { durations, easings, revealOffsetY, standardViewport } from '@/lib/motion'
 
@@ -19,13 +19,18 @@ export const Reveal = ({
   transition,
   ...rest
 }: RevealProps) => {
+  const reduceMotion = useReducedMotion()
   const Tag = motion[as] as typeof motion.div
   return (
     <Tag
-      initial={{ opacity: 0, y: revealOffsetY }}
+      initial={reduceMotion ? false : { opacity: 0, y: revealOffsetY }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={standardViewport}
-      transition={{ duration: durations.medium, ease: easings.smooth, delay, ...transition }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { duration: durations.medium, ease: easings.smooth, delay, ...transition }
+      }
       className={className}
       {...rest}
     >

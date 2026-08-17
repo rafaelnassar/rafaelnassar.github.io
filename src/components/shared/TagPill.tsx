@@ -1,5 +1,5 @@
 import { type HTMLAttributes } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { standardViewport, tagItem, tagsCascade } from '@/lib/motion'
 
@@ -29,18 +29,34 @@ interface TagPillListProps {
  * Lista de tags com cascade animation. Cada pill entra com 30ms de delay sobre a anterior
  * (subtleza editorial — não chamativo). Animação dispara quando o container entra em viewport.
  */
-export const TagPillList = ({ tags, variant = 'default', className }: TagPillListProps) => (
-  <motion.div
-    initial="hidden"
-    whileInView="visible"
-    viewport={standardViewport}
-    variants={tagsCascade}
-    className={cn('flex flex-wrap gap-1.5', className)}
-  >
-    {tags.map((tag) => (
-      <motion.span key={tag} variants={tagItem} className={tagPillClasses(variant)}>
-        {tag}
-      </motion.span>
-    ))}
-  </motion.div>
-)
+export const TagPillList = ({ tags, variant = 'default', className }: TagPillListProps) => {
+  const reduceMotion = useReducedMotion()
+
+  if (reduceMotion) {
+    return (
+      <div className={cn('flex flex-wrap gap-1.5', className)}>
+        {tags.map((tag) => (
+          <span key={tag} className={tagPillClasses(variant)}>
+            {tag}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={standardViewport}
+      variants={tagsCascade}
+      className={cn('flex flex-wrap gap-1.5', className)}
+    >
+      {tags.map((tag) => (
+        <motion.span key={tag} variants={tagItem} className={tagPillClasses(variant)}>
+          {tag}
+        </motion.span>
+      ))}
+    </motion.div>
+  )
+}

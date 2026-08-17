@@ -4,6 +4,8 @@ import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Card } from '@/components/shared/Card'
 import { TagPillList } from '@/components/shared/TagPill'
 import { IconBadge } from '@/components/shared/IconBadge'
+import { sectionClassName, sectionContentClassName } from '@/components/shared/sectionStyles'
+import { cn } from '@/lib/utils'
 import { stack, type TechCategory } from '@/data/technologies'
 import { useLang } from '@/lib/i18n'
 import { t } from '@/data/translations'
@@ -26,7 +28,11 @@ export const Technologies = () => {
   const tx = t(lang)
 
   return (
-    <section id="tecnologias" aria-labelledby="tecnologias-title" className="py-20 sm:py-24">
+    <section
+      id="tecnologias"
+      aria-labelledby="tecnologias-title"
+      className={sectionClassName('muted')}
+    >
       <div className="container mx-auto px-6">
         <SectionHeading
           id="tecnologias-title"
@@ -35,7 +41,7 @@ export const Technologies = () => {
           subtitle={tx.technologies.subtitle}
         />
 
-        <div className="max-w-3xl mx-auto grid gap-4">
+        <div className={cn(sectionContentClassName, 'space-y-4')}>
           {stack.map((category, index) => (
             <Reveal key={category.category[lang]} delay={index * 0.05}>
               <Card>

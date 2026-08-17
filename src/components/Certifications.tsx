@@ -5,6 +5,8 @@ import { Card } from '@/components/shared/Card'
 import { TagPillList } from '@/components/shared/TagPill'
 import { IconBadge } from '@/components/shared/IconBadge'
 import { OutlineLink } from '@/components/shared/OutlineLink'
+import { sectionClassName, sectionContentClassName } from '@/components/shared/sectionStyles'
+import { cn } from '@/lib/utils'
 import { certifications } from '@/data/certifications'
 import { useLang } from '@/lib/i18n'
 import { t } from '@/data/translations'
@@ -14,7 +16,11 @@ export const Certifications = () => {
   const tx = t(lang)
 
   return (
-    <section id="certificacoes" aria-labelledby="certificacoes-title" className="py-20 sm:py-24">
+    <section
+      id="certificacoes"
+      aria-labelledby="certificacoes-title"
+      className={sectionClassName('plain')}
+    >
       <div className="container mx-auto px-6">
         <SectionHeading
           id="certificacoes-title"
@@ -23,7 +29,7 @@ export const Certifications = () => {
           subtitle={tx.certifications.subtitle}
         />
 
-        <div className="max-w-3xl mx-auto grid gap-4">
+        <div className={cn(sectionContentClassName, 'space-y-4')}>
           {certifications.map((cert, index) => (
             <Reveal key={cert.credentialId} delay={index * 0.05}>
               <Card>

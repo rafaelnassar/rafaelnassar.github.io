@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Reveal } from '@/components/shared/Reveal'
 import { SectionHeading } from '@/components/shared/SectionHeading'
+import { sectionClassName, sectionProseClassName } from '@/components/shared/sectionStyles'
 import { durations, easings, stagger, standardViewport } from '@/lib/motion'
 import { useLang } from '@/lib/i18n'
 import { t } from '@/data/translations'
@@ -10,6 +11,7 @@ const statsParent = stagger(0.1, 0.06)
 export const About = () => {
   const { lang } = useLang()
   const tx = t(lang)
+  const reduceMotion = useReducedMotion()
 
   // Stats: três métricas conservadoras que sustentam o pitch.
   // statTechs foi reposicionado de "tecnologias" (vaidade) para "anos com
@@ -21,9 +23,9 @@ export const About = () => {
   ]
 
   return (
-    <section id="sobre" aria-labelledby="sobre-title" className="py-20 sm:py-24 bg-secondary/30">
+    <section id="sobre" aria-labelledby="sobre-title" className={sectionClassName('muted')}>
       <div className="container mx-auto px-6">
-        <div className="max-w-2xl mx-auto">
+        <div className={sectionProseClassName}>
           <SectionHeading
             id="sobre-title"
             title={tx.about.title}
@@ -40,19 +42,23 @@ export const About = () => {
           </Reveal>
 
           <motion.div
-            initial="hidden"
+            initial={reduceMotion ? false : 'hidden'}
             whileInView="visible"
             viewport={standardViewport}
-            variants={statsParent}
+            variants={reduceMotion ? undefined : statsParent}
             className="flex flex-wrap justify-center gap-x-8 gap-y-6 sm:gap-x-12 md:gap-x-16 mt-12 sm:mt-16"
           >
             {stats.map((stat) => (
               <motion.div
                 key={stat.label}
-                variants={{
-                  hidden: { opacity: 0, scale: 0.92 },
-                  visible: { opacity: 1, scale: 1 },
-                }}
+                variants={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        hidden: { opacity: 0, scale: 0.92 },
+                        visible: { opacity: 1, scale: 1 },
+                      }
+                }
                 transition={{ duration: durations.medium, ease: easings.smooth }}
                 className="text-center"
               >

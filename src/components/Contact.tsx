@@ -1,15 +1,17 @@
-import { MessageCircle, Mail, Github, Linkedin, ArrowUpRight } from "lucide-react";
-import { Reveal } from "@/components/shared/Reveal";
-import { SectionHeading } from "@/components/shared/SectionHeading";
-import { cn, focusRing } from "@/lib/utils";
-import { useLang } from "@/lib/i18n";
-import { t } from "@/data/translations";
+import { MessageCircle, Mail, Github, Linkedin, ArrowUpRight } from 'lucide-react'
+import { Reveal } from '@/components/shared/Reveal'
+import { SectionHeading } from '@/components/shared/SectionHeading'
+import { cardClassName } from '@/components/shared/cardStyles'
+import { sectionClassName, sectionProseClassName } from '@/components/shared/sectionStyles'
+import { cn, focusRing } from '@/lib/utils'
+import { useLang } from '@/lib/i18n'
+import { t } from '@/data/translations'
 
 export const Contact = () => {
-  const { lang } = useLang();
-  const tx = t(lang);
+  const { lang } = useLang()
+  const tx = t(lang)
 
-  const whatsappMessage = encodeURIComponent(tx.contact.whatsappMessage);
+  const whatsappMessage = encodeURIComponent(tx.contact.whatsappMessage)
 
   /*
    * WhatsApp segue como highlight (canal preferencial pro mercado BR).
@@ -20,35 +22,35 @@ export const Contact = () => {
   const links = [
     {
       icon: MessageCircle,
-      label: "WhatsApp",
+      label: 'WhatsApp',
       handle: tx.contact.whatsappHandle,
       href: `https://wa.me/5565981342422?text=${whatsappMessage}`,
       highlight: true,
     },
     {
       icon: Mail,
-      label: "Email",
-      handle: "adm.rafaelnassar@gmail.com",
-      href: "mailto:adm.rafaelnassar@gmail.com",
+      label: 'Email',
+      handle: 'adm.rafaelnassar@gmail.com',
+      href: 'mailto:adm.rafaelnassar@gmail.com',
     },
     {
       icon: Linkedin,
-      label: "LinkedIn",
-      handle: "nassarrafael",
-      href: "https://www.linkedin.com/in/nassarrafael",
+      label: 'LinkedIn',
+      handle: 'nassarrafael',
+      href: 'https://www.linkedin.com/in/nassarrafael',
     },
     {
       icon: Github,
-      label: "GitHub",
-      handle: "rafaelnassar",
-      href: "https://github.com/rafaelnassar",
+      label: 'GitHub',
+      handle: 'rafaelnassar',
+      href: 'https://github.com/rafaelnassar',
     },
-  ];
+  ]
 
   return (
-    <section id="contato" aria-labelledby="contato-title" className="py-20 sm:py-24">
+    <section id="contato" aria-labelledby="contato-title" className={sectionClassName('muted')}>
       <div className="container mx-auto px-6">
-        <div className="max-w-2xl mx-auto">
+        <div className={sectionProseClassName}>
           <SectionHeading
             id="contato-title"
             title={tx.contact.title}
@@ -60,45 +62,43 @@ export const Contact = () => {
             {links.map((link) => {
               // mailto: não deve abrir em nova aba (browsers abrem janela vazia).
               // Apenas links http(s) recebem target="_blank".
-              const isExternal = link.href.startsWith("http");
+              const isExternal = link.href.startsWith('http')
               return (
-              <a
-                key={link.label}
-                href={link.href}
-                target={isExternal ? "_blank" : undefined}
-                rel={isExternal ? "noopener noreferrer" : undefined}
-                className={cn(
-                  "flex items-center justify-between p-5 sm:p-6 rounded-2xl border transition-all duration-300 group",
-                  focusRing,
-                  link.highlight
-                    ? "bg-foreground text-background border-foreground hover:opacity-90"
-                    : "bg-card border-border hover:border-foreground/20 hover:shadow-md"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <link.icon className="w-5 h-5" aria-hidden />
-                  <div>
-                    <div
-                      className={cn(
-                        "text-xs",
-                        link.highlight ? "opacity-70" : "text-muted-foreground"
-                      )}
-                    >
-                      {link.label}
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target={isExternal ? '_blank' : undefined}
+                  rel={isExternal ? 'noopener noreferrer' : undefined}
+                  className={cn(
+                    cardClassName(link.highlight ? 'featured' : 'default'),
+                    'flex items-center justify-between group',
+                    focusRing
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <link.icon className="w-5 h-5" aria-hidden />
+                    <div>
+                      <div
+                        className={cn(
+                          'text-xs',
+                          link.highlight ? 'opacity-70' : 'text-muted-foreground'
+                        )}
+                      >
+                        {link.label}
+                      </div>
+                      <div className="font-medium text-sm sm:text-base">{link.handle}</div>
                     </div>
-                    <div className="font-medium text-sm sm:text-base">{link.handle}</div>
                   </div>
-                </div>
-                <ArrowUpRight
-                  aria-hidden
-                  className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200"
-                />
-              </a>
-              );
+                  <ArrowUpRight
+                    aria-hidden
+                    className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200"
+                  />
+                </a>
+              )
             })}
           </Reveal>
         </div>
       </div>
     </section>
-  );
-};
+  )
+}

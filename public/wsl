@@ -1,0 +1,440 @@
+# Rafael Nassar — WSL 2 setup (Windows 10/11)
+# Usage (PowerShell as Administrator):
+#   irm https://rafaelnassar.github.io/wsl | iex
+#
+# Resume-able: after the required reboot, run the same command again.
+
+$ErrorActionPreference = 'Stop'
+
+try {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+} catch {}
+
+$MinBuildForInstallCmd = 19041
+$DefaultDistro = 'Ubuntu'
+$WslConfigPath = Join-Path $env:USERPROFILE '.wslconfig'
+
+function Say {
+  param(
+    [string]$Text,
+    [ConsoleColor]$Color = [ConsoleColor]::Gray
+  )
+
+  try {
+    Write-Host $Text -ForegroundColor $Color
+  } catch {
+    Write-Host $Text
+  }
+}
+
+function Header {
+  Clear-Host
+  Write-Host ''
+  Say '======================================================' Cyan
+  Say '              RAFAEL NASSAR - WSL 2 SETUP             ' Cyan
+  Say '         Windows 10 / 11  ·  command-line only         ' Cyan
+  Say '======================================================' Cyan
+  Write-Host ''
+}
+
+function Pause-Menu {
+  Write-Host ''
+  Read-Host 'Press ENTER to continue'
+}
+
+function Test-IsAdmin {
+  $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+  $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+  return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Get-WindowsBuild {
+  try {
+    return [int](Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').CurrentBuild
+  } catch {
+    return 0
+  }
+}
+
+function Get-WindowsProductName {
+  try {
+    return [string](Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').ProductName
+  } catch {
+    return 'Windows'
+  }
+}
+
+function Test-VirtualizationEnabled {
+  try {
+    $cpu = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
+    if ($null -ne $cpu.VirtualizationFirmwareEnabled) {
+      return [bool]$cpu.VirtualizationFirmwareEnabled
+    }
+  } catch {}
+
+  try {
+    $cs = Get-CimInstance -ClassName Win32_ComputerSystem
+    if ($null -ne $cs.HypervisorPresent) {
+      return [bool]$cs.HypervisorPresent
+    }
+  } catch {}
+
+  return $true
+}
+
+function Test-WslPresent {
+  return [bool](Get-Command wsl.exe -ErrorAction SilentlyContinue)
+}
+
+function Invoke-Wsl {
+  param([Parameter(Mandatory = $true)][string[]]$WslArgs)
+
+  $previous = [Console]::OutputEncoding
+  try {
+    try {
+      [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    } catch {}
+    & wsl.exe @WslArgs
+    return $LASTEXITCODE
+  } finally {
+    try {
+      [Console]::OutputEncoding = $previous
+    } catch {}
+  }
+}
+
+function Get-WslDistroNames {
+  if (-not (Test-WslPresent)) {
+    return @()
+  }
+
+  $raw = $null
+  try {
+    $raw = & wsl.exe --list --quiet --utf8 2>$null
+  } catch {}
+
+  if (-not $raw) {
+    try {
+      $raw = & wsl.exe -l -q 2>$null
+    } catch {}
+  }
+
+  if (-not $raw) {
+    return @()
+  }
+
+  $text = if ($raw -is [array]) { $raw -join "`n" } else { [string]$raw }
+
+  # wsl.exe often emits UTF-16; PowerShell 5.1 then shows a space between every char.
+  if ($text -match '(?s)^.\s.\s.') {
+    $text = ($text -replace ' ', '')
+  }
+
+  $names = @()
+  foreach ($line in ($text -split "`r?`n")) {
+    $name = $line.Trim().Trim([char]0)
+    if ($name -and $name -notmatch '^(Windows Subsystem|Copyright|Usage)') {
+      $names += $name
+    }
+  }
+
+  return $names
+}
+
+function Show-SystemCheck {
+  $product = Get-WindowsProductName
+  $build = Get-WindowsBuild
+  $admin = Test-IsAdmin
+  $virt = Test-VirtualizationEnabled
+  $wsl = Test-WslPresent
+  $distros = Get-WslDistroNames
+
+  Say 'System check' White
+  Write-Host ''
+  Write-Host ("  OS:              {0}  (build {1})" -f $product, $build)
+  Write-Host ("  Administrator:   {0}" -f $(if ($admin) { 'yes' } else { 'NO — open PowerShell as Admin' }))
+  Write-Host ("  Virtualization:  {0}" -f $(if ($virt) { 'enabled' } else { 'DISABLED — turn on SVM/VT-x in BIOS/UEFI' }))
+  Write-Host ("  wsl.exe:         {0}" -f $(if ($wsl) { 'found' } else { 'not found yet' }))
+  Write-Host ("  Distros:         {0}" -f $(if ($distros.Count -gt 0) { $distros -join ', ' } else { '(none)' }))
+  Write-Host ''
+
+  if ($build -gt 0 -and $build -lt $MinBuildForInstallCmd) {
+    Say "This Windows build is too old for 'wsl --install'." Yellow
+    Say 'Need Windows 10 version 2004 (build 19041+) or Windows 11.' Yellow
+    return $false
+  }
+
+  if (-not $virt) {
+    Say 'Enable CPU virtualization in BIOS/UEFI, then rerun this script.' Yellow
+    return $false
+  }
+
+  return $true
+}
+
+function Enable-WslFeatures {
+  Say 'Enabling Windows features (WSL + Virtual Machine Platform)...' Blue
+  dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart | Out-Host
+  dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart | Out-Host
+}
+
+function Install-WslEngine {
+  if (-not (Test-IsAdmin)) {
+    throw 'Open PowerShell as Administrator and run the command again.'
+  }
+
+  if (-not (Show-SystemCheck)) {
+    return
+  }
+
+  if (Test-WslPresent) {
+    $statusCode = 1
+    try {
+      $statusCode = Invoke-Wsl -WslArgs @('--status')
+    } catch {
+      $statusCode = 1
+    }
+
+    if ($statusCode -eq 0) {
+      Say 'WSL is already installed. Use [3] to lock version 2 and [4] to add Ubuntu.' Yellow
+      return
+    }
+  }
+
+  Write-Host ''
+  Say 'Installing the WSL engine (no distro yet)...' Blue
+  Write-Host '  wsl --install --no-distribution'
+  Write-Host ''
+
+  $installed = $false
+
+  if (Test-WslPresent) {
+    try {
+      $code = Invoke-Wsl -WslArgs @('--install', '--no-distribution')
+      if ($code -eq 0) {
+        $installed = $true
+      }
+    } catch {}
+  }
+
+  if (-not $installed) {
+    Enable-WslFeatures
+    if (Test-WslPresent) {
+      try {
+        Invoke-Wsl -WslArgs @('--install', '--no-distribution') | Out-Null
+      } catch {}
+    }
+  }
+
+  Write-Host ''
+  Say 'A reboot is required before installing Ubuntu.' Yellow
+  Say 'After Windows comes back, open PowerShell as Admin and run:' Cyan
+  Write-Host '  irm https://rafaelnassar.github.io/wsl | iex'
+  Write-Host ''
+
+  $reboot = Read-Host 'Reboot now? [Y/n]'
+  if ($reboot -notmatch '^[nN]') {
+    shutdown.exe /r /t 5 /c "WSL 2 setup — reboot to finish enabling features"
+  }
+}
+
+function Set-WslTwoDefault {
+  if (-not (Test-WslPresent)) {
+    throw 'WSL is not available yet. Use option [2] first, reboot, then come back.'
+  }
+
+  Say 'Updating WSL and setting default version to 2...' Blue
+  Invoke-Wsl -WslArgs @('--update') | Out-Null
+  Invoke-Wsl -WslArgs @('--set-default-version', '2') | Out-Null
+  Write-Host ''
+  Invoke-Wsl -WslArgs @('--status') | Out-Host
+  Say 'Default version is now WSL 2.' Green
+}
+
+function Install-UbuntuDistro {
+  if (-not (Test-WslPresent)) {
+    throw 'WSL is not available yet. Use option [2] first, reboot, then come back.'
+  }
+
+  $existing = Get-WslDistroNames
+  $already = $existing | Where-Object { $_ -match '^Ubuntu' }
+
+  if ($already) {
+    Say ("Ubuntu is already installed: {0}" -f ($already -join ', ')) Yellow
+    return
+  }
+
+  Write-Host ''
+  Say 'Available distros:' White
+  Invoke-Wsl -WslArgs @('--list', '--online') | Out-Host
+  Write-Host ''
+
+  $name = Read-Host "Distro to install [$DefaultDistro]"
+  if ([string]::IsNullOrWhiteSpace($name)) {
+    $name = $DefaultDistro
+  }
+
+  Say ("Installing {0} as WSL 2..." -f $name) Blue
+  $code = Invoke-Wsl -WslArgs @('--install', '-d', $name, '--no-launch')
+  if ($code -ne 0) {
+    Say 'Store install failed — retrying with --web-download...' Yellow
+    Invoke-Wsl -WslArgs @('--install', '-d', $name, '--web-download', '--no-launch') | Out-Null
+  }
+
+  Invoke-Wsl -WslArgs @('--set-version', $name, '2') | Out-Null
+
+  Write-Host ''
+  Say 'Distro installed. First launch asks for a Linux username and password:' Green
+  Write-Host ("  wsl -d {0}" -f $name)
+}
+
+function Write-WslConfigFile {
+  $ramGb = 16
+  $cpuCount = 4
+
+  try {
+    $ramGb = [math]::Max(4, [int][math]::Floor(((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB) / 2))
+  } catch {}
+
+  try {
+    $cpuCount = [math]::Max(2, [int]((Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum / 2))
+  } catch {}
+
+  Write-Host ''
+  Say ("Suggested limits from this PC: {0}GB RAM, {1} CPUs (about half)." -f $ramGb, $cpuCount) White
+  Write-Host ''
+
+  $memIn = Read-Host ("memory in GB [{0}]" -f $ramGb)
+  $cpuIn = Read-Host ("processors [{0}]" -f $cpuCount)
+
+  if (-not [string]::IsNullOrWhiteSpace($memIn)) {
+    $ramGb = [int]$memIn
+  }
+  if (-not [string]::IsNullOrWhiteSpace($cpuIn)) {
+    $cpuCount = [int]$cpuIn
+  }
+
+  $content = @"
+[wsl2]
+memory=${ramGb}GB
+processors=$cpuCount
+swap=2GB
+localhostForwarding=true
+"@
+
+  Set-Content -Path $WslConfigPath -Value $content -Encoding ASCII
+  Say ("Wrote {0}" -f $WslConfigPath) Green
+  Write-Host $content
+
+  if (Test-WslPresent) {
+    $apply = Read-Host 'Apply now with wsl --shutdown? [Y/n]'
+    if ($apply -notmatch '^[nN]') {
+      Invoke-Wsl -WslArgs @('--shutdown') | Out-Null
+      Say 'WSL shut down. Next launch uses the new limits.' Green
+    }
+  }
+}
+
+function Enable-Systemd {
+  $distros = Get-WslDistroNames
+  if ($distros.Count -eq 0) {
+    throw 'No distro installed yet. Use option [4] first.'
+  }
+
+  $target = $distros[0]
+  if ($distros.Count -gt 1) {
+    Write-Host ''
+    for ($i = 0; $i -lt $distros.Count; $i++) {
+      Write-Host ("  [{0}] {1}" -f ($i + 1), $distros[$i])
+    }
+    Write-Host ''
+    $pick = Read-Host 'Distro number [1]'
+    $index = 1
+    if (-not [string]::IsNullOrWhiteSpace($pick)) {
+      [void][int]::TryParse($pick, [ref]$index)
+    }
+    if ($index -ge 1 -and $index -le $distros.Count) {
+      $target = $distros[$index - 1]
+    }
+  }
+
+  Say ("Enabling systemd in {0}..." -f $target) Blue
+  Invoke-Wsl -WslArgs @(
+    '-d', $target, '-u', 'root', '--',
+    'bash', '-lc', "printf '[boot]\nsystemd=true\n' > /etc/wsl.conf"
+  ) | Out-Null
+
+  Invoke-Wsl -WslArgs @('--shutdown') | Out-Null
+  Say 'Done. Open the distro again and run: systemctl list-unit-files --type=service' Green
+}
+
+function Show-Status {
+  if (-not (Test-WslPresent)) {
+    Say 'wsl.exe not found. Install the engine first (option [2]).' Yellow
+    return
+  }
+
+  Write-Host ''
+  Say 'wsl --status' White
+  Invoke-Wsl -WslArgs @('--status') | Out-Host
+  Write-Host ''
+  Say 'wsl --list --verbose' White
+  Invoke-Wsl -WslArgs @('--list', '--verbose') | Out-Host
+  Write-Host ''
+  if (Test-Path $WslConfigPath) {
+    Say (".wslconfig: {0}" -f $WslConfigPath) White
+    Get-Content $WslConfigPath | Out-Host
+  } else {
+    Say 'No .wslconfig yet (optional RAM/CPU limits).' Gray
+  }
+}
+
+function MainMenu {
+  while ($true) {
+    Header
+    Say 'Install and configure WSL 2 from scratch, all via commands.' White
+    Write-Host ''
+    Write-Host '  [1] Check system'
+    Write-Host '  [2] Install WSL 2 engine (then reboot)'
+    Write-Host '  [3] Update WSL + set default version 2'
+    Write-Host '  [4] Install Ubuntu (or another distro)'
+    Write-Host '  [5] Write .wslconfig (RAM / CPU limits)'
+    Write-Host '  [6] Enable systemd in a distro'
+    Write-Host '  [7] Show status'
+    Write-Host '  [0] Exit'
+    Write-Host ''
+
+    $op = Read-Host 'Option'
+
+    try {
+      switch ($op) {
+        '1' { Show-SystemCheck | Out-Null; Pause-Menu }
+        '2' { Install-WslEngine; Pause-Menu }
+        '3' { Set-WslTwoDefault; Pause-Menu }
+        '4' { Install-UbuntuDistro; Pause-Menu }
+        '5' { Write-WslConfigFile; Pause-Menu }
+        '6' { Enable-Systemd; Pause-Menu }
+        '7' { Show-Status; Pause-Menu }
+        '0' { return }
+        default {
+          Say 'Invalid option.' Yellow
+          Start-Sleep -Seconds 1
+        }
+      }
+    } catch {
+      Write-Host ''
+      Say "ERROR: $($_.Exception.Message)" Red
+      Pause-Menu
+    }
+  }
+}
+
+try {
+  MainMenu
+} catch {
+  Write-Host ''
+  Say "ERROR: $($_.Exception.Message)" Red
+  Write-Host ''
+  Pause-Menu
+  exit 1
+}

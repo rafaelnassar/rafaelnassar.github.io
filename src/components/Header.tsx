@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Brand } from "@/components/shared/Brand";
-import { springs } from "@/lib/motion";
+import { LabsNavLink } from "@/components/labs/LabsNavLink";
+import { durations, easings, springs } from "@/lib/motion";
 import { cn, focusRing } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
@@ -27,6 +28,7 @@ const NAV_SECTION_IDS = [
 export const Header = () => {
   const { lang } = useLang();
   const tx = t(lang);
+  const reduceMotion = useReducedMotion();
 
   // navLinks dependem de lang (textos traduzidos). IDs e hrefs são fixos
   // pra não quebrar deep-links e ancoragem por seção.
@@ -187,13 +189,18 @@ export const Header = () => {
     previousMenuOpen.current = isMobileMenuOpen;
   }, [isMobileMenuOpen]);
 
-  const scrollToSection = useCallback((id: string) => {
-    const element = document.getElementById(id);
-    if (!element) return;
-    const elementPosition = element.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.scrollY - SCROLL_OFFSET;
-    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-  }, []);
+  const scrollBehavior = reduceMotion ? "auto" : "smooth";
+
+  const scrollToSection = useCallback(
+    (id: string) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - SCROLL_OFFSET;
+      window.scrollTo({ top: offsetPosition, behavior: scrollBehavior });
+    },
+    [scrollBehavior]
+  );
 
   return (
     <motion.header
@@ -201,22 +208,27 @@ export const Header = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-200",
         isScrolled
           ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
           : "bg-transparent"
       )}
     >
-      <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+      {/*
+        Desktop: grid 1fr | auto | 1fr garante o nav opticamente no centro
+        (justify-between deslocava o pill porque logo ≠ ações da direita).
+        Mobile: flex + justify-between (marca | Labs/idioma/tema/menu).
+      */}
+      <div className="container mx-auto px-6 h-16 flex items-center justify-between lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4">
         <motion.a
           href="#"
           title={tx.nav.backToTop}
-          className={cn("cursor-pointer rounded-md", focusRing)}
+          className={cn("relative z-10 justify-self-start cursor-pointer rounded-md", focusRing)}
           whileHover={{ opacity: 0.7 }}
           transition={{ duration: 0.2 }}
           onClick={(e) => {
             e.preventDefault();
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            window.scrollTo({ top: 0, behavior: scrollBehavior });
             setActiveSection(null);
           }}
         >
@@ -226,7 +238,7 @@ export const Header = () => {
         <nav
           ref={navRef}
           aria-label={tx.nav.primaryNav}
-          className="hidden lg:flex items-center gap-1 bg-secondary/50 backdrop-blur-sm rounded-full px-1.5 py-1.5 relative"
+          className="hidden lg:flex items-center gap-1 bg-secondary/50 backdrop-blur-sm rounded-full px-1.5 py-1.5 relative justify-self-center"
         >
           {activeSection && (
             <motion.span
@@ -255,7 +267,7 @@ export const Header = () => {
                 scrollToSection(link.id);
               }}
               className={cn(
-                "relative z-10 px-4 py-2 text-sm rounded-full transition-colors duration-200",
+                "relative z-10 px-3 xl:px-4 py-2 text-sm rounded-full transition-colors duration-200",
                 focusRing,
                 activeSection === link.id
                   ? "text-foreground"
@@ -267,9 +279,10 @@ export const Header = () => {
           ))}
         </nav>
 
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3 justify-self-end">
           <LanguageToggle />
           <ThemeToggle />
+          <LabsNavLink />
           <Button size="sm" asChild>
             <a
               href="https://www.linkedin.com/in/nassarrafael"
@@ -282,6 +295,7 @@ export const Header = () => {
         </div>
 
         <div className="lg:hidden flex items-center gap-2">
+          <LabsNavLink />
           <LanguageToggle />
           <ThemeToggle />
           <button
@@ -289,7 +303,7 @@ export const Header = () => {
             type="button"
             onClick={() => setIsMobileMenuOpen((v) => !v)}
             className={cn(
-              "p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors",
+              "p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors duration-200",
               focusRing
             )}
             aria-label={isMobileMenuOpen ? tx.nav.menuClose : tx.nav.menuOpen}
@@ -309,10 +323,13 @@ export const Header = () => {
             role="dialog"
             aria-modal="true"
             aria-label={tx.nav.menuLabel}
-            initial={{ opacity: 0, height: 0 }}
+            initial={reduceMotion ? false : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+            transition={{
+              duration: reduceMotion ? 0 : durations.micro,
+              ease: easings.swift,
+            }}
             className="lg:hidden bg-background border-b border-border overflow-hidden"
             onAnimationComplete={(definition) => {
               if (definition === "exit" && pendingScrollRef.current) {
@@ -335,7 +352,7 @@ export const Header = () => {
                     setIsMobileMenuOpen(false);
                   }}
                   className={cn(
-                    "px-3 py-2.5 rounded-lg transition-colors",
+                    "px-3 py-2.5 rounded-lg transition-colors duration-200",
                     focusRing,
                     activeSection === link.id
                       ? "text-foreground bg-secondary"

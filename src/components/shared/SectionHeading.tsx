@@ -1,4 +1,6 @@
 import { Reveal } from '@/components/shared/Reveal'
+import { sectionProseClassName } from '@/components/shared/sectionStyles'
+import { cn } from '@/lib/utils'
 
 interface SectionHeadingProps {
   id: string
@@ -16,7 +18,7 @@ export const SectionHeading = ({
   italicPosition = 'after',
 }: SectionHeadingProps) => {
   return (
-    <Reveal className="max-w-2xl mx-auto text-center mb-10 sm:mb-12">
+    <Reveal className={cn(sectionProseClassName, 'text-center mb-10 sm:mb-12')}>
       <h2 id={id} className="text-3xl sm:text-4xl font-medium tracking-tight mb-4">
         {italicPosition === 'after' ? (
           <>
@@ -30,7 +32,7 @@ export const SectionHeading = ({
           </>
         )}
       </h2>
-      {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
+      {subtitle && <p className="text-muted-foreground text-sm sm:text-base">{subtitle}</p>}
     </Reveal>
   )
 }

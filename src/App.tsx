@@ -6,8 +6,10 @@ import { LanguageProvider } from "@/lib/i18n";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-// CV é carregado sob demanda — não infla o bundle inicial do portfolio
+// Rotas secundárias sob demanda — não inflam o bundle inicial do portfolio
 const CV = lazy(() => import("./pages/CV"));
+const Labs = lazy(() => import("./pages/Labs"));
+const LabDetail = lazy(() => import("./pages/LabDetail"));
 
 const App = () => (
   <LanguageProvider>
@@ -21,6 +23,22 @@ const App = () => (
               element={
                 <Suspense fallback={null}>
                   <CV />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/labs"
+              element={
+                <Suspense fallback={null}>
+                  <Labs />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/labs/:slug"
+              element={
+                <Suspense fallback={null}>
+                  <LabDetail />
                 </Suspense>
               }
             />

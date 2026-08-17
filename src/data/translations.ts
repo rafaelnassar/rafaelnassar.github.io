@@ -39,6 +39,7 @@ const dict = {
     mobileNav: { pt: "Navegação móvel", en: "Mobile navigation" },
     backToTop: { pt: "Voltar ao topo", en: "Back to top" },
     skipLink: { pt: "Pular para o conteúdo", en: "Skip to main content" },
+    labs: { pt: "Labs", en: "Labs" },
   },
 
   // Hero
@@ -178,6 +179,33 @@ const dict = {
       pt: "Todos os direitos reservados",
       en: "All rights reserved",
     },
+    labs: {
+      pt: "Labs — scripts e docs",
+      en: "Labs — scripts & docs",
+    },
+  },
+
+  // Labs (/labs + /labs/:slug)
+  labs: {
+    navLabel: { pt: "Labs", en: "Labs" },
+    eyebrow: { pt: "Utilitários públicos", en: "Public utilities" },
+    title: { pt: "Labs", en: "Labs" },
+    italic: { pt: "& docs", en: "& docs" },
+    subtitle: {
+      pt: "Scripts, comandos e documentação que eu uso no dia a dia — liberados pra você copiar e rodar.",
+      en: "Scripts, commands and docs I use day to day — free to copy and run.",
+    },
+    backHome: { pt: "Voltar ao portfolio", en: "Back to portfolio" },
+    backToIndex: { pt: "Todos os labs", en: "All labs" },
+    updated: { pt: "Atualizado", en: "Updated" },
+    quickStart: { pt: "Começar agora", en: "Quick start" },
+    prerequisites: { pt: "Pré-requisitos", en: "Prerequisites" },
+    includedTools: { pt: "Ferramentas incluídas", en: "Included tools" },
+    howToUse: { pt: "Como usar", en: "How to use" },
+    notes: { pt: "Observações", en: "Notes" },
+    sources: { pt: "Arquivos fonte", en: "Source files" },
+    copy: { pt: "Copiar", en: "Copy" },
+    copied: { pt: "Copiado", en: "Copied" },
   },
 
   // CV (página /cv + PDF)
