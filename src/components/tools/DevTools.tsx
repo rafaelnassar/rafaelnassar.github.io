@@ -9,7 +9,6 @@ import {
   SegmentedControl,
   SelectInput,
   StatGrid,
-  StatusBanner,
   ToolActions,
   ToolPanel,
   ToolSplit,
@@ -17,6 +16,7 @@ import {
   textareaClassName,
   toolStackClassName,
 } from "@/components/tools/shared";
+import { formatSql } from "@/lib/tools/sql";
 import {
   countText,
   decodeJwt,
@@ -46,6 +46,7 @@ import {
 } from "@/lib/tools/color";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
+import { cn } from "@/lib/utils";
 
 export const UuidGenerator = () => {
   const { lang } = useLang();
@@ -72,62 +73,164 @@ export const UuidGenerator = () => {
   );
 };
 
-export const JsonFormatter = () => {
+const JSON_SAMPLE = `{
+  "name": "Rafael",
+  "active": true,
+  "tags": ["labs", "json"]
+}`;
+
+const SQL_SAMPLE = `SELECT u.name, u.email, COUNT(o.id) AS orders
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE u.active = true
+GROUP BY u.name, u.email
+ORDER BY orders DESC;`;
+
+type FormatMode = "pretty" | "minify";
+
+type FormatResult =
+  | { status: "idle" }
+  | { status: "valid"; output: string }
+  | { status: "invalid"; error: string };
+
+const readJson = (input: string, pretty: boolean): FormatResult => {
+  const trimmed = input.trim();
+  if (!trimmed) return { status: "idle" };
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    const output = JSON.stringify(parsed, null, pretty ? 2 : 0);
+    return { status: "valid", output };
+  } catch (err) {
+    return {
+      status: "invalid",
+      error: err instanceof Error ? err.message : "",
+    };
+  }
+};
+
+const FormatterTool = ({
+  id,
+  sample,
+  format,
+  hint,
+  invalidLabel,
+}: {
+  id: string;
+  sample: string;
+  format: (input: string, pretty: boolean) => FormatResult;
+  hint: string;
+  invalidLabel: string;
+}) => {
   const { lang } = useLang();
   const tx = t(lang);
-  const [input, setInput] = useState("{\n  \n}");
-  const [output, setOutput] = useState("");
-  const [message, setMessage] = useState<"idle" | "valid" | "invalid">("idle");
-  const [error, setError] = useState("");
+  const [input, setInput] = useState(sample);
+  const [mode, setMode] = useState<FormatMode>("pretty");
+  const [touched, setTouched] = useState(false);
 
-  const run = (pretty: boolean) => {
-    try {
-      const parsed = JSON.parse(input);
-      setOutput(JSON.stringify(parsed, null, pretty ? 2 : 0));
-      setMessage("valid");
-      setError("");
-    } catch (err) {
-      setMessage("invalid");
-      setError(err instanceof Error ? err.message : tx.tools.jsonInvalid);
-    }
-  };
+  const pretty = mode === "pretty";
+  const parsed = useMemo(() => format(input, pretty), [format, input, pretty]);
+  const output = parsed.status === "valid" ? parsed.output : "";
+  const showError = touched && parsed.status === "invalid";
+  const errorMessage = showError
+    ? [invalidLabel, parsed.error].filter(Boolean).join(" ")
+    : undefined;
+  const inputId = `${id}-input`;
 
   return (
     <ToolPanel>
       <div className={toolStackClassName}>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SegmentedControl
+            legend={tx.tools.options}
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: "pretty", label: tx.tools.format },
+              { value: "minify", label: tx.tools.minify },
+            ]}
+          />
+          <ToolActions>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setInput(sample);
+                setTouched(false);
+              }}
+            >
+              {tx.tools.example}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setInput("");
+                setTouched(false);
+              }}
+            >
+              {tx.tools.clear}
+            </Button>
+          </ToolActions>
+        </div>
+
         <ToolSplit>
-          <div className="space-y-3">
-            <Field id="json-input" label={tx.tools.input} error={error || undefined}>
-              <textarea
-                id="json-input"
-                value={input}
-                onChange={(event) => {
-                  setInput(event.target.value);
-                  setMessage("idle");
-                  setError("");
-                }}
-                className={textareaClassName}
-                aria-invalid={message === "invalid"}
-              />
-            </Field>
-            <ToolActions>
-              <Button type="button" onClick={() => run(true)}>
-                {tx.tools.format}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => run(false)}>
-                {tx.tools.minify}
-              </Button>
-            </ToolActions>
-          </div>
-          <div className="space-y-3">
-            {message === "valid" ? (
-              <StatusBanner tone="success">{tx.tools.jsonValid}</StatusBanner>
-            ) : null}
-            <ResultBlock label={tx.tools.output} value={output} />
-          </div>
+          <Field
+            id={inputId}
+            label={tx.tools.input}
+            hint={showError ? undefined : hint}
+            error={errorMessage}
+          >
+            <textarea
+              id={inputId}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onBlur={() => {
+                if (input.trim()) setTouched(true);
+              }}
+              className={cn(textareaClassName, "h-72 min-h-72 resize-none")}
+              spellCheck={false}
+              aria-invalid={showError}
+              aria-describedby={
+                showError ? `${inputId}-error` : `${inputId}-hint`
+              }
+            />
+          </Field>
+
+          <ResultBlock label={tx.tools.output} value={output} tall />
         </ToolSplit>
       </div>
     </ToolPanel>
+  );
+};
+
+export const JsonFormatter = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
+
+  return (
+    <FormatterTool
+      id="json"
+      sample={JSON_SAMPLE}
+      format={readJson}
+      hint={tx.tools.jsonHint}
+      invalidLabel={tx.tools.jsonInvalid}
+    />
+  );
+};
+
+export const SqlFormatter = () => {
+  const { lang } = useLang();
+  const tx = t(lang);
+
+  return (
+    <FormatterTool
+      id="sql"
+      sample={SQL_SAMPLE}
+      format={formatSql}
+      hint={tx.tools.sqlHint}
+      invalidLabel={tx.tools.sqlInvalid}
+    />
   );
 };
 
@@ -224,8 +327,6 @@ export const LoremGenerator = () => {
 
   const limits = LOREM_LIMITS[unit];
   const value = formatLoremOutput(plain, html);
-  const stats = countText(plain);
-  const paragraphCount = plain.split(/\n\n+/).filter(Boolean).length;
 
   const refresh = (next: {
     unit: LoremUnit;
@@ -339,15 +440,6 @@ export const LoremGenerator = () => {
           mono={html}
           wrap="words"
           tall
-        />
-
-        <StatGrid
-          items={[
-            { label: tx.tools.paragraphs, value: paragraphCount },
-            { label: tx.tools.words, value: stats.words },
-            { label: tx.tools.chars, value: stats.chars },
-            { label: tx.tools.bytes, value: stats.bytes },
-          ]}
         />
       </form>
     </ToolPanel>

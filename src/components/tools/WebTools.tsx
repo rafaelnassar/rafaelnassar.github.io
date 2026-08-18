@@ -5,10 +5,12 @@ import {
   Field,
   ResultBlock,
   ResultInline,
+  SegmentedControl,
   StatGrid,
   StatusBanner,
   ToolActions,
   ToolPanel,
+  ToolSplit,
   fieldClassName,
   textareaClassName,
   toolStackClassName,
@@ -61,60 +63,137 @@ export const MetaTagsGenerator = () => {
   );
 };
 
+const QR_SAMPLE = "https://rafaelnassar.github.io";
+const QR_SIZES = ["256", "384", "512"] as const;
+type QrSize = (typeof QR_SIZES)[number];
+
 export const QrCodeGenerator = () => {
   const { lang } = useLang();
   const tx = t(lang);
-  const [text, setText] = useState("https://");
-  const [size, setSize] = useState(256);
+  const [text, setText] = useState(QR_SAMPLE);
+  const [size, setSize] = useState<QrSize>("256");
   const [dataUrl, setDataUrl] = useState("");
+  const [failed, setFailed] = useState(false);
+  const pixels = Number(size);
 
   useEffect(() => {
-    if (!text.trim()) {
+    let cancelled = false;
+    const value = text.trim();
+
+    if (!value) {
       setDataUrl("");
+      setFailed(false);
       return;
     }
-    QRCode.toDataURL(text, { width: size, margin: 2 })
-      .then(setDataUrl)
-      .catch(() => setDataUrl(""));
-  }, [text, size]);
+
+    QRCode.toDataURL(value, {
+      width: pixels,
+      margin: 2,
+      errorCorrectionLevel: "M",
+      color: { dark: "#111111", light: "#ffffff" },
+    })
+      .then((url) => {
+        if (cancelled) return;
+        setDataUrl(url);
+        setFailed(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDataUrl("");
+        setFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [text, pixels]);
 
   return (
     <ToolPanel>
       <div className={toolStackClassName}>
-        <Field id="qr-text" label={tx.tools.input}>
-          <textarea
-            id="qr-text"
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            className={textareaClassName}
-          />
-        </Field>
-        <Field id="qr-size" label={`${tx.tools.qrSize}: ${size}px`}>
-          <input
-            id="qr-size"
-            type="range"
-            min={128}
-            max={512}
-            step={32}
-            value={size}
-            onChange={(event) => setSize(Number(event.target.value))}
-            className="w-full accent-foreground cursor-pointer"
-          />
-        </Field>
-        {dataUrl ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-secondary/30 p-4">
-            <img src={dataUrl} alt={tx.tools.qrPreview} width={size} height={size} className="max-w-full h-auto" />
-            <a
-              href={dataUrl}
-              download="qrcode.png"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        <ToolSplit>
+          <div className={toolStackClassName}>
+            <Field
+              id="qr-text"
+              label={tx.tools.input}
+              hint={failed ? undefined : tx.tools.qrHint}
+              error={failed ? tx.tools.qrError : undefined}
             >
-              {tx.tools.qrDownload}
-            </a>
+              <textarea
+                id="qr-text"
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                className={`${textareaClassName} min-h-40`}
+                spellCheck={false}
+                autoComplete="off"
+                aria-invalid={failed}
+                aria-describedby={failed ? "qr-text-error" : "qr-text-hint"}
+              />
+            </Field>
+
+            <div className="space-y-1.5">
+              <p className="block text-sm font-medium tracking-tight" aria-hidden>
+                {tx.tools.qrSize}
+              </p>
+              <SegmentedControl
+                legend={tx.tools.qrSize}
+                value={size}
+                onChange={setSize}
+                fullWidth
+                options={QR_SIZES.map((value) => ({
+                  value,
+                  label: `${value}px`,
+                }))}
+              />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {tx.tools.qrSizeHint}
+              </p>
+            </div>
+
+            <ToolActions>
+              {dataUrl ? (
+                <Button asChild>
+                  <a href={dataUrl} download="qrcode.png">
+                    {tx.tools.qrDownload}
+                  </a>
+                </Button>
+              ) : (
+                <Button type="button" disabled>
+                  {tx.tools.qrDownload}
+                </Button>
+              )}
+              <Button type="button" variant="outline" onClick={() => setText(QR_SAMPLE)}>
+                {tx.tools.qrExample}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setText("")}>
+                {tx.tools.clear}
+              </Button>
+            </ToolActions>
           </div>
-        ) : (
-          <StatusBanner tone="neutral">{tx.tools.qrEmpty}</StatusBanner>
-        )}
+
+          <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-secondary/30 px-4 py-6">
+            {dataUrl ? (
+              <div className="rounded-xl bg-white p-3 shadow-sm">
+                <img
+                  src={dataUrl}
+                  alt={tx.tools.qrPreview}
+                  width={220}
+                  height={220}
+                  className="h-[13.75rem] w-[13.75rem] max-w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex max-w-xs flex-col items-center gap-3 text-center">
+                <p className="text-sm text-muted-foreground text-pretty">
+                  {tx.tools.qrEmpty}
+                </p>
+                <Button type="button" variant="outline" onClick={() => setText(QR_SAMPLE)}>
+                  {tx.tools.qrExample}
+                </Button>
+              </div>
+            )}
+          </div>
+        </ToolSplit>
       </div>
     </ToolPanel>
   );

@@ -169,18 +169,6 @@ const dict = {
     whatsappHandle: { pt: "Fale comigo", en: "Send a message" },
   },
 
-  // Footer
-  footer: {
-    rights: {
-      pt: "Todos os direitos reservados",
-      en: "All rights reserved",
-    },
-    labs: {
-      pt: "Labs — ferramentas, scripts e docs",
-      en: "Labs — tools, scripts & docs",
-    },
-  },
-
   // Labs (/labs + seções + /labs/:slug)
   labs: {
     navLabel: { pt: "Labs", en: "Labs" },
@@ -257,7 +245,10 @@ const dict = {
     pageLabel: { pt: "Página", en: "Page" },
     toolsTabGenerators: { pt: "Geradores", en: "Generators" },
     toolsTabValidators: { pt: "Validadores", en: "Validators" },
-    toolsTabUtilities: { pt: "Utilitários", en: "Utilities" },
+    toolsTabText: { pt: "Texto", en: "Text" },
+    toolsTabDraws: { pt: "Sorteios", en: "Raffles" },
+    toolsTabCode: { pt: "Código", en: "Code" },
+    toolsTabSystem: { pt: "Sistema", en: "System" },
     toolsCategoryLegend: { pt: "Categoria de ferramentas", en: "Tool category" },
   },
 
@@ -381,6 +372,16 @@ const dict = {
     hashAlgorithm: { pt: "Algoritmo", en: "Algorithm" },
     jsonInvalid: { pt: "JSON inválido.", en: "Invalid JSON." },
     jsonValid: { pt: "JSON válido.", en: "Valid JSON." },
+    jsonHint: {
+      pt: "Cole o JSON na entrada. A saída atualiza sozinha.",
+      en: "Paste JSON in the input. The output updates as you type.",
+    },
+    example: { pt: "Exemplo", en: "Example" },
+    sqlInvalid: { pt: "SQL inválido.", en: "Invalid SQL." },
+    sqlHint: {
+      pt: "Cole o SQL na entrada. A saída atualiza sozinha.",
+      en: "Paste SQL in the input. The output updates as you type.",
+    },
     decodeError: {
       pt: "Não foi possível decodificar esse valor.",
       en: "Could not decode that value.",
@@ -525,10 +526,26 @@ const dict = {
     metaDescription: { pt: "Description", en: "Description" },
     metaUrl: { pt: "URL (Open Graph)", en: "URL (Open Graph)" },
     metaUrlHint: { pt: "Opcional — usado em og:url.", en: "Optional — used in og:url." },
-    qrSize: { pt: "Tamanho", en: "Size" },
+    qrSize: { pt: "Tamanho do PNG", en: "PNG size" },
+    qrSizeHint: {
+      pt: "Altera só o arquivo baixado. A prévia na tela fica no mesmo tamanho.",
+      en: "Changes the downloaded file only. The on-screen preview stays the same size.",
+    },
     qrPreview: { pt: "Pré-visualização do QR Code", en: "QR Code preview" },
     qrDownload: { pt: "Baixar PNG", en: "Download PNG" },
-    qrEmpty: { pt: "Digite um texto ou URL para gerar o QR Code.", en: "Enter text or a URL to generate the QR Code." },
+    qrEmpty: {
+      pt: "Digite um texto ou URL para ver o QR Code.",
+      en: "Enter text or a URL to see the QR Code.",
+    },
+    qrHint: {
+      pt: "URL, Wi-Fi, PIX ou qualquer texto. A prévia atualiza sozinha.",
+      en: "URL, Wi-Fi, PIX, or any text. The preview updates as you type.",
+    },
+    qrExample: { pt: "Exemplo", en: "Example" },
+    qrError: {
+      pt: "Não foi possível gerar. Tente um texto mais curto.",
+      en: "Could not generate. Try a shorter text.",
+    },
     myIp: { pt: "IP público", en: "Public IP" },
     myIpHint: {
       pt: "Consulta api.ipify.org — seu IP é enviado apenas para esse serviço.",

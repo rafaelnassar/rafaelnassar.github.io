@@ -197,20 +197,40 @@ test.describe("Labs", () => {
 
     const toolLinks = page.locator('a[href^="/labs/ferramentas/"]');
     await expect(toolLinks).toHaveCount(4);
+    await expect(page.getByRole("heading", { name: "Gerador de pessoa" })).toBeVisible();
 
     await page.getByRole("button", { name: "Validadores" }).click();
-    await expect(page).toHaveURL(/aba=validator/);
-    await expect(toolLinks).toHaveCount(3);
+    await expect(page).toHaveURL(/aba=validadores/);
+    await expect(page.getByRole("heading", { name: "Validador CPF / CNPJ" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Utilitários" }).click();
-    await expect(page).toHaveURL(/aba=utility/);
+    await page.getByRole("button", { name: "Sorteios" }).click();
+    await expect(page).toHaveURL(/aba=sorteios/);
     await expect(toolLinks).toHaveCount(4);
     await expect(page.getByRole("heading", { name: "Sorteador de números" })).toBeVisible();
 
-    await page.goto("/labs/ferramentas?aba=generator&pagina=2");
+    await page.getByRole("button", { name: "Texto" }).click();
+    await expect(page).toHaveURL(/aba=texto/);
+    await expect(page.getByRole("heading", { name: "Conversor de texto" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Código" }).click();
+    await expect(page).toHaveURL(/aba=codigo/);
+    await expect(page.getByRole("heading", { name: "Formatador JSON" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Sistema" }).click();
+    await expect(page).toHaveURL(/aba=sistema/);
+    await expect(page.getByRole("heading", { name: "Meu IP" })).toBeVisible();
+
+    await page.goto("/labs/ferramentas?pagina=2");
     await expect(page.getByRole("navigation", { name: /Paginação de ferramentas/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /Página 2/ })).toHaveAttribute("aria-current", "page");
     await expect(toolLinks).toHaveCount(4);
+
+    await page.getByRole("link", { name: /Gerador de veículos/ }).click();
+    await expect(page).toHaveURL(/\/labs\/ferramentas\/gerador-veiculos$/);
+    await page.getByRole("link", { name: /Todas as ferramentas|All tools/ }).click();
+    await expect(page).toHaveURL(/pagina=2/);
+    await expect(page.getByRole("link", { name: /Página 2/ })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("heading", { name: "Gerador de veículos" })).toBeVisible();
   });
 
   test("gerador de senha e gerador de CPF funcionam no browser", async ({ page }) => {

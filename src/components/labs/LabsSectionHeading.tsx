@@ -11,7 +11,7 @@ interface LabsSectionHeadingProps {
   className?: string;
 }
 
-/** Cabeçalho do Labs — alinhado à mesma coluna dos cards, sem wrap forçado. */
+/** Cabeçalho do Labs — centralizado como as seções do portfolio. */
 export const LabsSectionHeading = ({
   id,
   title,
@@ -23,7 +23,7 @@ export const LabsSectionHeading = ({
   const tx = t(lang);
 
   return (
-    <Reveal className={cn("mb-6 sm:mb-8", className)}>
+    <Reveal className={cn("mb-6 sm:mb-8 text-center", className)}>
       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
         {tx.labs.eyebrow}
       </p>
@@ -36,7 +36,7 @@ export const LabsSectionHeading = ({
           {italic}
         </span>
       </h1>
-      <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-prose text-pretty">
+      <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-prose mx-auto text-pretty">
         {subtitle}
       </p>
     </Reveal>

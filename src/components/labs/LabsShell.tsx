@@ -11,6 +11,7 @@ import { cn, focusRing } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
 import { getLabBySlug } from "@/data/labs";
+import { isToolsDetailPath, readToolsListHref } from "@/lib/labs-catalog";
 
 interface LabsShellProps {
   children: ReactNode;
@@ -34,12 +35,18 @@ const getActiveNav = (pathname: string): LabsNavId => {
 export const LabsShell = ({ children }: LabsShellProps) => {
   const { lang } = useLang();
   const tx = t(lang);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const reduceMotion = useReducedMotion();
   const activeSection = getActiveNav(pathname);
 
+  const ferramentasHref = isToolsDetailPath(pathname)
+    ? readToolsListHref()
+    : pathname === "/labs/ferramentas"
+      ? `${pathname}${search}`
+      : "/labs/ferramentas";
+
   const navLinks = [
-    { id: "ferramentas" as const, name: tx.labs.navTools, href: "/labs/ferramentas" },
+    { id: "ferramentas" as const, name: tx.labs.navTools, href: ferramentasHref },
     { id: "scripts" as const, name: tx.labs.navScripts, href: "/labs/scripts" },
     { id: "docs" as const, name: tx.labs.navDocs, href: "/labs/docs" },
     { id: "api" as const, name: tx.labs.navApi, href: "/labs/api" },

@@ -126,8 +126,8 @@ const RouletteWheel = ({
         <span className="-mt-0.5 h-0 w-0 border-x-[9px] border-t-[20px] border-x-transparent border-t-primary drop-shadow-sm" />
       </div>
 
-      <div className="rounded-full bg-foreground p-2 shadow-lg">
-        <div className="rounded-full bg-background p-1.5">
+      <div className="rounded-full border border-border bg-card p-2 shadow-sm">
+        <div className="rounded-full border border-border/80 bg-background p-1">
           <motion.div
             className="aspect-square overflow-hidden rounded-full"
             animate={{ rotate: rotation }}
@@ -144,13 +144,13 @@ const RouletteWheel = ({
                 const [x2, y2] = polar(cx, cy, radius, end);
                 const large = sweep > 180 ? 1 : 0;
                 const [lx, ly] = polar(cx, cy, radius * 0.64, start + sweep / 2);
-                const primary = index % 2 === 0;
+                const even = index % 2 === 0;
                 return (
                   <g key={`${item}-${index}`}>
                     <path
                       d={`M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2} Z`}
-                      fill={primary ? "hsl(var(--foreground))" : "hsl(var(--primary))"}
-                      stroke="hsl(var(--background))"
+                      fill={even ? "hsl(var(--wheel-slice-a))" : "hsl(var(--wheel-slice-b))"}
+                      stroke="hsl(var(--border))"
                       strokeWidth="1.5"
                     />
                     <text
@@ -159,7 +159,7 @@ const RouletteWheel = ({
                       textAnchor="middle"
                       dominantBaseline="middle"
                       transform={`rotate(${start + sweep / 2} ${lx} ${ly})`}
-                      fill={primary ? "hsl(var(--background))" : "hsl(var(--primary-foreground))"}
+                      fill={even ? "hsl(var(--wheel-slice-a-fg))" : "hsl(var(--wheel-slice-b-fg))"}
                       fontSize={items.length > 10 ? 10 : 13}
                       fontWeight={600}
                     >
@@ -172,7 +172,7 @@ const RouletteWheel = ({
                 cx={cx}
                 cy={cy}
                 r={36}
-                fill="hsl(var(--background))"
+                fill="hsl(var(--card))"
                 stroke="hsl(var(--border))"
                 strokeWidth="3"
               />

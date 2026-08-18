@@ -3,6 +3,7 @@ import {
   Braces,
   Car,
   CreditCard,
+  Database,
   Disc3,
   FileKey2,
   Fingerprint,
@@ -28,7 +29,13 @@ import {
   WholeWord,
 } from "lucide-react";
 
-export type ToolCategory = "generator" | "validator" | "utility";
+export type ToolCategory =
+  | "geradores"
+  | "validadores"
+  | "texto"
+  | "sorteios"
+  | "codigo"
+  | "sistema";
 
 export interface LabTool {
   slug: string;
@@ -39,34 +46,40 @@ export interface LabTool {
   tags: string[];
 }
 
-export const TOOL_CATEGORIES: ToolCategory[] = ["generator", "validator", "utility"];
+export const TOOL_CATEGORIES: ToolCategory[] = [
+  "geradores",
+  "validadores",
+  "texto",
+  "sorteios",
+  "codigo",
+  "sistema",
+];
+
+export const DEFAULT_TOOL_CATEGORY: ToolCategory = "geradores";
+
+/** URLs antigas caem na aba equivalente. */
+export const LEGACY_TOOL_CATEGORIES: Record<string, ToolCategory> = {
+  brasil: "geradores",
+  cadastros: "geradores",
+  generator: "geradores",
+  validator: "validadores",
+  utility: "sorteios",
+  dev: "codigo",
+};
+
+export const isToolCategory = (value: string | null): value is ToolCategory =>
+  TOOL_CATEGORIES.includes(value as ToolCategory);
+
+export const resolveToolCategory = (value: string | null): ToolCategory => {
+  if (isToolCategory(value)) return value;
+  if (value && value in LEGACY_TOOL_CATEGORIES) return LEGACY_TOOL_CATEGORIES[value];
+  return DEFAULT_TOOL_CATEGORY;
+};
 
 export const tools: LabTool[] = [
   {
-    slug: "gerador-de-senha",
-    category: "generator",
-    icon: KeyRound,
-    title: { pt: "Gerador de senha", en: "Password generator" },
-    summary: {
-      pt: "Senhas aleatórias com comprimento, símbolos e exclusão de caracteres semelhantes.",
-      en: "Random passwords with length, symbols, and look-alike character exclusion.",
-    },
-    tags: ["Segurança", "Crypto"],
-  },
-  {
-    slug: "gerador-cpf-cnpj",
-    category: "generator",
-    icon: IdCard,
-    title: { pt: "Gerador CPF / CNPJ", en: "CPF / CNPJ generator" },
-    summary: {
-      pt: "Gera CPFs e CNPJs com dígitos verificadores válidos — só para testes de software.",
-      en: "Generates CPFs and CNPJs with valid check digits — for software testing only.",
-    },
-    tags: ["Brasil", "QA"],
-  },
-  {
     slug: "gerador-de-pessoa",
-    category: "generator",
+    category: "geradores",
     icon: UserRound,
     title: { pt: "Gerador de pessoa", en: "Person generator" },
     summary: {
@@ -76,30 +89,30 @@ export const tools: LabTool[] = [
     tags: ["Brasil", "QA"],
   },
   {
-    slug: "gerador-cartao-credito",
-    category: "generator",
-    icon: CreditCard,
-    title: { pt: "Gerador de cartão", en: "Credit card generator" },
+    slug: "gerador-cpf-cnpj",
+    category: "geradores",
+    icon: IdCard,
+    title: { pt: "Gerador CPF / CNPJ", en: "CPF / CNPJ generator" },
     summary: {
-      pt: "Números válidos por bandeira (Visa, Master, Amex…) com validade e CVV — só para testes.",
-      en: "Valid numbers by brand (Visa, Master, Amex…) with expiry and CVV — testing only.",
-    },
-    tags: ["QA", "Pagamentos"],
-  },
-  {
-    slug: "gerador-veiculos",
-    category: "generator",
-    icon: Car,
-    title: { pt: "Gerador de veículos", en: "Vehicle generator" },
-    summary: {
-      pt: "Placa Mercosul, RENAVAM, marca, modelo, ano e cor — dados fictícios para QA.",
-      en: "Mercosul plate, RENAVAM, brand, model, year and color — fake data for QA.",
+      pt: "Gera CPFs e CNPJs com dígitos verificadores válidos — só para testes de software.",
+      en: "Generates CPFs and CNPJs with valid check digits — for software testing only.",
     },
     tags: ["Brasil", "QA"],
   },
   {
+    slug: "validador-cpf-cnpj",
+    category: "validadores",
+    icon: FileKey2,
+    title: { pt: "Validador CPF / CNPJ", en: "CPF / CNPJ validator" },
+    summary: {
+      pt: "Valida dígitos verificadores e rejeita sequências repetidas.",
+      en: "Validates check digits and rejects repeated sequences.",
+    },
+    tags: ["Brasil", "Validação"],
+  },
+  {
     slug: "gerador-telefone",
-    category: "generator",
+    category: "geradores",
     icon: Phone,
     title: { pt: "Gerador de telefone", en: "Phone generator" },
     summary: {
@@ -110,7 +123,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "gerador-cep",
-    category: "generator",
+    category: "geradores",
     icon: MapPin,
     title: { pt: "Gerador de CEP", en: "ZIP code generator" },
     summary: {
@@ -120,74 +133,30 @@ export const tools: LabTool[] = [
     tags: ["Brasil", "QA"],
   },
   {
-    slug: "gerador-de-uuid",
-    category: "generator",
-    icon: Fingerprint,
-    title: { pt: "Gerador de UUID", en: "UUID generator" },
+    slug: "gerador-veiculos",
+    category: "geradores",
+    icon: Car,
+    title: { pt: "Gerador de veículos", en: "Vehicle generator" },
     summary: {
-      pt: "UUIDv4 criptograficamente aleatório, no seu navegador.",
-      en: "Cryptographically random UUIDv4, in your browser.",
+      pt: "Placa Mercosul, RENAVAM, marca, modelo, ano e cor — dados fictícios para QA.",
+      en: "Mercosul plate, RENAVAM, brand, model, year and color — fake data for QA.",
     },
-    tags: ["Dev", "IDs"],
+    tags: ["Brasil", "QA"],
   },
   {
-    slug: "lorem",
-    category: "generator",
-    icon: Type,
-    title: { pt: "Gerador de Lorem Ipsum", en: "Lorem Ipsum generator" },
+    slug: "gerador-cartao-credito",
+    category: "geradores",
+    icon: CreditCard,
+    title: { pt: "Gerador de cartão", en: "Credit card generator" },
     summary: {
-      pt: "Texto de preenchimento em latim, português ou inglês — parágrafos, frases ou palavras.",
-      en: "Filler text in Latin, Portuguese, or English — paragraphs, sentences, or words.",
+      pt: "Números válidos por bandeira (Visa, Master, Amex…) com validade e CVV — só para testes.",
+      en: "Valid numbers by brand (Visa, Master, Amex…) with expiry and CVV — testing only.",
     },
-    tags: ["Copy", "QA"],
-  },
-  {
-    slug: "gerador-meta-tags",
-    category: "generator",
-    icon: Tags,
-    title: { pt: "Gerador de meta tags", en: "Meta tags generator" },
-    summary: {
-      pt: "Monta title, description, keywords e Open Graph com contador de caracteres.",
-      en: "Builds title, description, keywords and Open Graph with character counts.",
-    },
-    tags: ["SEO", "Web"],
-  },
-  {
-    slug: "gerador-qrcode",
-    category: "generator",
-    icon: QrCode,
-    title: { pt: "Gerador de QR Code", en: "QR Code generator" },
-    summary: {
-      pt: "Gera QR Code a partir de URL ou texto, com download em PNG.",
-      en: "Generates QR codes from URL or text, with PNG download.",
-    },
-    tags: ["Web", "Dev"],
-  },
-  {
-    slug: "verificador-de-senha",
-    category: "validator",
-    icon: ShieldCheck,
-    title: { pt: "Verificador de senha", en: "Password checker" },
-    summary: {
-      pt: "Confere se a senha já vazou, via API gratuita do Have I Been Pwned (k-anonymity).",
-      en: "Checks whether a password was leaked, using the free Have I Been Pwned API (k-anonymity).",
-    },
-    tags: ["HIBP", "Segurança"],
-  },
-  {
-    slug: "validador-cpf-cnpj",
-    category: "validator",
-    icon: FileKey2,
-    title: { pt: "Validador CPF / CNPJ", en: "CPF / CNPJ validator" },
-    summary: {
-      pt: "Valida dígitos verificadores e rejeita sequências repetidas.",
-      en: "Validates check digits and rejects repeated sequences.",
-    },
-    tags: ["Brasil", "Validação"],
+    tags: ["QA", "Pagamentos"],
   },
   {
     slug: "validador-cartao-credito",
-    category: "validator",
+    category: "validadores",
     icon: CreditCard,
     title: { pt: "Validador de cartão", en: "Credit card validator" },
     summary: {
@@ -197,8 +166,19 @@ export const tools: LabTool[] = [
     tags: ["Pagamentos", "Validação"],
   },
   {
+    slug: "numero-por-extenso",
+    category: "texto",
+    icon: Hash,
+    title: { pt: "Número por extenso", en: "Number to words" },
+    summary: {
+      pt: "Converte valores monetários ou números simples para texto por extenso.",
+      en: "Converts monetary values or plain numbers to words.",
+    },
+    tags: ["Texto", "Brasil"],
+  },
+  {
     slug: "sorteador",
-    category: "utility",
+    category: "sorteios",
     icon: Shuffle,
     title: { pt: "Sorteador de números", en: "Number raffle" },
     summary: {
@@ -209,7 +189,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "sorteador-lista",
-    category: "utility",
+    category: "sorteios",
     icon: List,
     title: { pt: "Sorteador de lista", en: "List raffle" },
     summary: {
@@ -220,7 +200,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "sorteador-roleta",
-    category: "utility",
+    category: "sorteios",
     icon: Disc3,
     title: { pt: "Roleta", en: "Prize wheel" },
     summary: {
@@ -231,7 +211,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "sorteador-contagem",
-    category: "utility",
+    category: "sorteios",
     icon: Timer,
     title: { pt: "Sorteio com contagem", en: "Countdown draw" },
     summary: {
@@ -241,19 +221,19 @@ export const tools: LabTool[] = [
     tags: ["Social", "Live"],
   },
   {
-    slug: "formatador-json",
-    category: "utility",
-    icon: Braces,
-    title: { pt: "Formatador JSON", en: "JSON formatter" },
+    slug: "lorem",
+    category: "geradores",
+    icon: Type,
+    title: { pt: "Gerador de Lorem Ipsum", en: "Lorem Ipsum generator" },
     summary: {
-      pt: "Valida, indenta e minifica JSON com mensagem de erro clara.",
-      en: "Validate, pretty-print and minify JSON with a clear error message.",
+      pt: "Texto de preenchimento em latim, português ou inglês — parágrafos, frases ou palavras.",
+      en: "Filler text in Latin, Portuguese, or English — paragraphs, sentences, or words.",
     },
-    tags: ["JSON", "Dev"],
+    tags: ["Copy", "QA"],
   },
   {
     slug: "conversor-de-texto",
-    category: "utility",
+    category: "texto",
     icon: Type,
     title: { pt: "Conversor de texto", en: "Case converter" },
     summary: {
@@ -264,7 +244,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "contador-de-texto",
-    category: "utility",
+    category: "texto",
     icon: WholeWord,
     title: { pt: "Contador de texto", en: "Text counter" },
     summary: {
@@ -274,41 +254,8 @@ export const tools: LabTool[] = [
     tags: ["Texto"],
   },
   {
-    slug: "conversor-de-cor",
-    category: "utility",
-    icon: Palette,
-    title: { pt: "Conversor de cor", en: "Color converter" },
-    summary: {
-      pt: "HEX, RGB e HSL com color picker, pré-visualização e contraste visível.",
-      en: "HEX, RGB and HSL with color picker, preview and visible contrast.",
-    },
-    tags: ["CSS", "Design"],
-  },
-  {
-    slug: "jwt",
-    category: "utility",
-    icon: FileKey2,
-    title: { pt: "Decodificador JWT", en: "JWT decoder" },
-    summary: {
-      pt: "Lê header e payload. Não verifica assinatura — só inspeção.",
-      en: "Reads header and payload. Does not verify the signature — inspection only.",
-    },
-    tags: ["Auth", "Dev"],
-  },
-  {
-    slug: "rescisao-contrato",
-    category: "utility",
-    icon: Scale,
-    title: { pt: "Rescisão de contrato", en: "Contract termination" },
-    summary: {
-      pt: "Estimativa de acerto trabalhista: saldo, férias, 13º, aviso e multa FGTS.",
-      en: "Labor severance estimate: balance, vacation, bonus, notice and FGTS fine.",
-    },
-    tags: ["Brasil", "RH"],
-  },
-  {
     slug: "textos-fontes-personalizadas",
-    category: "utility",
+    category: "texto",
     icon: Sparkles,
     title: { pt: "Fontes personalizadas", en: "Fancy text" },
     summary: {
@@ -318,19 +265,107 @@ export const tools: LabTool[] = [
     tags: ["Texto", "Social"],
   },
   {
-    slug: "numero-por-extenso",
-    category: "utility",
-    icon: Hash,
-    title: { pt: "Número por extenso", en: "Number to words" },
+    slug: "gerador-de-senha",
+    category: "geradores",
+    icon: KeyRound,
+    title: { pt: "Gerador de senha", en: "Password generator" },
     summary: {
-      pt: "Converte valores monetários ou números simples para texto por extenso.",
-      en: "Converts monetary values or plain numbers to words.",
+      pt: "Senhas aleatórias com comprimento, símbolos e exclusão de caracteres semelhantes.",
+      en: "Random passwords with length, symbols, and look-alike character exclusion.",
     },
-    tags: ["Texto", "Brasil"],
+    tags: ["Segurança", "Crypto"],
+  },
+  {
+    slug: "verificador-de-senha",
+    category: "validadores",
+    icon: ShieldCheck,
+    title: { pt: "Verificador de senha", en: "Password checker" },
+    summary: {
+      pt: "Confere se a senha já vazou, via API gratuita do Have I Been Pwned (k-anonymity).",
+      en: "Checks whether a password was leaked, using the free Have I Been Pwned API (k-anonymity).",
+    },
+    tags: ["HIBP", "Segurança"],
+  },
+  {
+    slug: "gerador-de-uuid",
+    category: "geradores",
+    icon: Fingerprint,
+    title: { pt: "Gerador de UUID", en: "UUID generator" },
+    summary: {
+      pt: "UUIDv4 criptograficamente aleatório, no seu navegador.",
+      en: "Cryptographically random UUIDv4, in your browser.",
+    },
+    tags: ["Dev", "IDs"],
+  },
+  {
+    slug: "formatador-json",
+    category: "codigo",
+    icon: Braces,
+    title: { pt: "Formatador JSON", en: "JSON formatter" },
+    summary: {
+      pt: "Valida, indenta e minifica JSON com mensagem de erro clara.",
+      en: "Validate, pretty-print and minify JSON with a clear error message.",
+    },
+    tags: ["JSON", "Dev"],
+  },
+  {
+    slug: "formatador-sql",
+    category: "codigo",
+    icon: Database,
+    title: { pt: "Formatador SQL", en: "SQL formatter" },
+    summary: {
+      pt: "Indenta e minifica SQL, com palavras-chave em maiúsculas e erro claro.",
+      en: "Pretty-print and minify SQL, with uppercase keywords and a clear error message.",
+    },
+    tags: ["SQL", "Dev"],
+  },
+  {
+    slug: "jwt",
+    category: "codigo",
+    icon: FileKey2,
+    title: { pt: "Decodificador JWT", en: "JWT decoder" },
+    summary: {
+      pt: "Lê header e payload. Não verifica assinatura — só inspeção.",
+      en: "Reads header and payload. Does not verify the signature — inspection only.",
+    },
+    tags: ["Auth", "Dev"],
+  },
+  {
+    slug: "gerador-qrcode",
+    category: "geradores",
+    icon: QrCode,
+    title: { pt: "Gerador de QR Code", en: "QR Code generator" },
+    summary: {
+      pt: "Gera QR Code a partir de URL ou texto, com download em PNG.",
+      en: "Generates QR codes from URL or text, with PNG download.",
+    },
+    tags: ["Web", "Dev"],
+  },
+  {
+    slug: "gerador-meta-tags",
+    category: "geradores",
+    icon: Tags,
+    title: { pt: "Gerador de meta tags", en: "Meta tags generator" },
+    summary: {
+      pt: "Monta title, description, keywords e Open Graph com contador de caracteres.",
+      en: "Builds title, description, keywords and Open Graph with character counts.",
+    },
+    tags: ["SEO", "Web"],
+  },
+  {
+    slug: "conversor-de-cor",
+    category: "codigo",
+    icon: Palette,
+    title: { pt: "Conversor de cor", en: "Color converter" },
+    summary: {
+      pt: "HEX, RGB e HSL com color picker, pré-visualização e contraste visível.",
+      en: "HEX, RGB and HSL with color picker, preview and visible contrast.",
+    },
+    tags: ["CSS", "Design"],
   },
   {
     slug: "meu-ip",
-    category: "utility",
+    category: "sistema",
     icon: Globe,
     title: { pt: "Meu IP", en: "My IP" },
     summary: {
@@ -341,7 +376,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "meu-navegador",
-    category: "utility",
+    category: "sistema",
     icon: Monitor,
     title: { pt: "Meu navegador", en: "My browser" },
     summary: {
@@ -352,7 +387,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "meu-sistema-operacional",
-    category: "utility",
+    category: "sistema",
     icon: Monitor,
     title: { pt: "Meu sistema operacional", en: "My operating system" },
     summary: {
@@ -363,7 +398,7 @@ export const tools: LabTool[] = [
   },
   {
     slug: "teste-de-velocidade",
-    category: "utility",
+    category: "sistema",
     icon: Gauge,
     title: { pt: "Teste de velocidade", en: "Speed test" },
     summary: {
@@ -371,6 +406,17 @@ export const tools: LabTool[] = [
       en: "Ping, download and upload with Cloudflare’s official engine, at the nearest point of presence.",
     },
     tags: ["Rede", "Dev"],
+  },
+  {
+    slug: "rescisao-contrato",
+    category: "sistema",
+    icon: Scale,
+    title: { pt: "Rescisão de contrato", en: "Contract termination" },
+    summary: {
+      pt: "Estimativa de acerto trabalhista: saldo, férias, 13º, aviso e multa FGTS.",
+      en: "Labor severance estimate: balance, vacation, bonus, notice and FGTS fine.",
+    },
+    tags: ["Brasil", "RH"],
   },
 ];
 

@@ -42,6 +42,12 @@
     --sidebar-accent-foreground: 220 12% 30%;
     --sidebar-border: 40 10% 90%;
     --sidebar-ring: 220 45% 45%;
+
+    /* Roleta: fatias de superfície. Primary fica no ponteiro/miolo, não no fill. */
+    --wheel-slice-a: var(--secondary);
+    --wheel-slice-a-fg: var(--foreground);
+    --wheel-slice-b: 220 30% 87%;
+    --wheel-slice-b-fg: var(--foreground);
   }
 
   .dark {
@@ -73,6 +79,8 @@
     --sidebar-accent-foreground: 40 8% 82%;
     --sidebar-border: 225 10% 18%;
     --sidebar-ring: 215 50% 62%;
+
+    --wheel-slice-b: 215 28% 15%;
   }
 }
 

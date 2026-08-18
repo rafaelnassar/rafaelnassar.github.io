@@ -1,18 +1,16 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getToolsPageCount, type ToolCategory } from "@/data/tools";
+import { getToolsPageCount, DEFAULT_TOOL_CATEGORY, type ToolCategory } from "@/data/tools";
+import { buildToolsListHref } from "@/lib/labs-catalog";
 import { cn, focusRing } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
 
-const DEFAULT_CATEGORY: ToolCategory = "generator";
-
 const pageHref = (page: number, category?: ToolCategory): string => {
   const params = new URLSearchParams();
-  if (category && category !== DEFAULT_CATEGORY) params.set("aba", category);
+  if (category && category !== DEFAULT_TOOL_CATEGORY) params.set("aba", category);
   if (page > 1) params.set("pagina", String(page));
-  const query = params.toString();
-  return query ? `/labs/ferramentas?${query}` : "/labs/ferramentas";
+  return buildToolsListHref(params);
 };
 
 interface ToolsPaginationProps {
@@ -32,7 +30,7 @@ export const ToolsPagination = ({ currentPage, category }: ToolsPaginationProps)
   return (
     <nav
       aria-label={tx.labs.toolsPagination}
-      className="flex items-center gap-2 pt-2"
+      className="flex items-center justify-center gap-2 pt-2"
     >
       <Link
         to={pageHref(Math.max(1, currentPage - 1), category)}

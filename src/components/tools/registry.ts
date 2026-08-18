@@ -29,6 +29,7 @@ import {
   JsonFormatter,
   JwtDecoder,
   LoremGenerator,
+  SqlFormatter,
   TextCounter,
   UuidGenerator,
 } from "@/components/tools/DevTools";
@@ -52,6 +53,7 @@ export const toolComponents: Record<string, ComponentType> = {
   "gerador-meta-tags": MetaTagsGenerator,
   "gerador-qrcode": QrCodeGenerator,
   "formatador-json": JsonFormatter,
+  "formatador-sql": SqlFormatter,
   "conversor-de-texto": CaseConverter,
   "contador-de-texto": TextCounter,
   lorem: LoremGenerator,

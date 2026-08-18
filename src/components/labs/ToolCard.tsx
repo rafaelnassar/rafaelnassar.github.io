@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { Card } from "@/components/shared/Card";
 import { IconBadge } from "@/components/shared/IconBadge";
+import { buildToolsListHref, saveToolsListHref } from "@/lib/labs-catalog";
 import { cn, focusRing } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import type { LabTool } from "@/data/tools";
@@ -12,11 +13,15 @@ interface ToolCardProps {
 
 export const ToolCard = ({ tool }: ToolCardProps) => {
   const { lang } = useLang();
+  const { search } = useLocation();
   const Icon = tool.icon;
+  const toolsListHref = buildToolsListHref(search);
 
   return (
     <Link
       to={`/labs/ferramentas/${tool.slug}`}
+      state={{ toolsListHref }}
+      onClick={() => saveToolsListHref(toolsListHref)}
       className={cn("block rounded-2xl cursor-pointer h-full", focusRing)}
     >
       <Card className="h-full group">

@@ -82,11 +82,15 @@ interface FieldProps {
   hint?: string;
   error?: string;
   children: ReactNode;
+  className?: string;
 }
 
-export const Field = ({ id, label, hint, error, children }: FieldProps) => (
-  <div className="space-y-1.5">
-    <label htmlFor={id} className="block text-sm font-medium tracking-tight">
+export const Field = ({ id, label, hint, error, children, className }: FieldProps) => (
+  <div className={cn("space-y-1.5", className)}>
+    <label
+      htmlFor={id}
+      className="flex h-9 items-center text-sm font-medium tracking-tight"
+    >
       {label}
     </label>
     {children}
@@ -221,15 +225,20 @@ export const ResultBlock = ({
   tall = false,
 }: ResultBlockProps) => (
   <div className={cn("space-y-1.5", className)}>
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex h-9 items-center justify-between gap-2">
       <p className="text-sm font-medium tracking-tight">{label}</p>
       <CopyButton value={value} />
     </div>
-    <div className="rounded-xl border border-input bg-background overflow-hidden">
+    <div
+      className={cn(
+        "rounded-xl border border-input bg-background overflow-hidden",
+        tall && "h-72"
+      )}
+    >
       <pre
         className={cn(
-          "overflow-auto px-3 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
-          tall ? "min-h-48 max-h-[28rem]" : "max-h-72",
+          "h-full overflow-auto px-3 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
+          tall ? undefined : "max-h-72",
           wrap === "words" ? "break-words" : "break-all",
           mono ? "font-mono" : "font-sans"
         )}
@@ -356,7 +365,7 @@ export const SegmentedControl = <T extends string>({
 }) => (
   <fieldset
     className={cn(
-      "flex flex-wrap gap-1 p-1 rounded-full bg-secondary/50 backdrop-blur-sm border border-border",
+      "flex flex-wrap justify-center gap-1 p-1 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border",
       fullWidth ? "w-full" : "w-fit max-w-full"
     )}
   >
