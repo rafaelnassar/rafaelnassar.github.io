@@ -30,7 +30,7 @@ export const LabCard = ({ lab }: LabCardProps) => {
           </div>
 
           <div className="flex items-start justify-between gap-3">
-            <h2 className="font-medium text-base sm:text-lg tracking-tight">
+            <h2 className="font-medium text-base sm:text-lg tracking-tight text-balance">
               {lab.title[lang]}
             </h2>
             <ArrowUpRight
@@ -42,12 +42,6 @@ export const LabCard = ({ lab }: LabCardProps) => {
           <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
             {lab.summary[lang]}
           </p>
-
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {lab.tags.map((tag) => (
-              <TagPill key={tag}>{tag}</TagPill>
-            ))}
-          </div>
         </div>
       </Card>
     </Link>

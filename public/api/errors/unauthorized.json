@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Token de autenticação inválido ou expirado",
+    "status": 401,
+    "details": "Forneça um Bearer token válido no header Authorization.",
+    "timestamp": "2026-08-17T23:53:00Z",
+    "path": "/api/v1/protected"
+  }
+}

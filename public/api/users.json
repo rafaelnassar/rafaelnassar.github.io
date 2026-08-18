@@ -1,0 +1,114 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Ana Carolina Silva",
+      "username": "ana.silva",
+      "email": "ana.silva@example.com",
+      "phone": "+55 11 98765-4321",
+      "role": "admin",
+      "avatar": "https://i.pravatar.cc/150?u=ana",
+      "address": {
+        "street": "Rua Augusta, 1200",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01304-001",
+        "country": "BR"
+      },
+      "company": {
+        "id": 1,
+        "name": "TechFlow Ltda"
+      },
+      "createdAt": "2024-03-15T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Bruno Mendes",
+      "username": "bruno.m",
+      "email": "bruno.mendes@example.com",
+      "phone": "+55 21 99876-5432",
+      "role": "editor",
+      "avatar": "https://i.pravatar.cc/150?u=bruno",
+      "address": {
+        "street": "Av. Atlântica, 500",
+        "city": "Rio de Janeiro",
+        "state": "RJ",
+        "zipCode": "22010-000",
+        "country": "BR"
+      },
+      "company": {
+        "id": 2,
+        "name": "Digital Wave"
+      },
+      "createdAt": "2024-06-22T14:15:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Carla Fernandes",
+      "username": "carla.f",
+      "email": "carla.fernandes@example.com",
+      "phone": "+55 31 97654-3210",
+      "role": "viewer",
+      "avatar": "https://i.pravatar.cc/150?u=carla",
+      "address": {
+        "street": "Rua da Bahia, 800",
+        "city": "Belo Horizonte",
+        "state": "MG",
+        "zipCode": "30160-011",
+        "country": "BR"
+      },
+      "company": {
+        "id": 1,
+        "name": "TechFlow Ltda"
+      },
+      "createdAt": "2025-01-08T09:00:00Z"
+    },
+    {
+      "id": 4,
+      "name": "Diego Oliveira",
+      "username": "diego.o",
+      "email": "diego.oliveira@example.com",
+      "phone": "+55 51 96543-2109",
+      "role": "editor",
+      "avatar": "https://i.pravatar.cc/150?u=diego",
+      "address": {
+        "street": "Av. Borges de Medeiros, 300",
+        "city": "Porto Alegre",
+        "state": "RS",
+        "zipCode": "90020-025",
+        "country": "BR"
+      },
+      "company": {
+        "id": 3,
+        "name": "CloudNine S.A."
+      },
+      "createdAt": "2025-04-12T16:45:00Z"
+    },
+    {
+      "id": 5,
+      "name": "Elena Rodriguez",
+      "username": "elena.r",
+      "email": "elena.rodriguez@example.com",
+      "phone": "+55 85 95432-1098",
+      "role": "admin",
+      "avatar": "https://i.pravatar.cc/150?u=elena",
+      "address": {
+        "street": "Av. Beira Mar, 1500",
+        "city": "Fortaleza",
+        "state": "CE",
+        "zipCode": "60165-121",
+        "country": "BR"
+      },
+      "company": {
+        "id": 2,
+        "name": "Digital Wave"
+      },
+      "createdAt": "2025-07-30T11:20:00Z"
+    }
+  ],
+  "meta": {
+    "total": 5,
+    "page": 1,
+    "perPage": 10
+  }
+}

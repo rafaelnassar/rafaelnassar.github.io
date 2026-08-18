@@ -1,0 +1,58 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "TechFlow Ltda",
+      "cnpj": "12.345.678/0001-90",
+      "email": "contato@techflow.example.com",
+      "phone": "+55 11 3000-1000",
+      "website": "https://techflow.example.com",
+      "industry": "Software",
+      "employees": 85,
+      "founded": 2018,
+      "address": {
+        "street": "Av. Paulista, 1000",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Digital Wave",
+      "cnpj": "98.765.432/0001-10",
+      "email": "hello@digitalwave.example.com",
+      "phone": "+55 21 4000-2000",
+      "website": "https://digitalwave.example.com",
+      "industry": "Marketing Digital",
+      "employees": 42,
+      "founded": 2020,
+      "address": {
+        "street": "Rua do Ouvidor, 50",
+        "city": "Rio de Janeiro",
+        "state": "RJ",
+        "country": "BR"
+      }
+    },
+    {
+      "id": 3,
+      "name": "CloudNine S.A.",
+      "cnpj": "11.222.333/0001-44",
+      "email": "support@cloudnine.example.com",
+      "phone": "+55 51 5000-3000",
+      "website": "https://cloudnine.example.com",
+      "industry": "Cloud Computing",
+      "employees": 120,
+      "founded": 2015,
+      "address": {
+        "street": "Av. Ipiranga, 2000",
+        "city": "Porto Alegre",
+        "state": "RS",
+        "country": "BR"
+      }
+    }
+  ],
+  "meta": {
+    "total": 3
+  }
+}

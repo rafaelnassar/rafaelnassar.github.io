@@ -1,0 +1,65 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Como estruturar um monorepo com pnpm",
+      "slug": "como-estruturar-monorepo-pnpm",
+      "excerpt": "Workspaces, filtros e scripts compartilhados sem dor de cabeça.",
+      "body": "Um monorepo bem organizado acelera o desenvolvimento em equipes...",
+      "authorId": 1,
+      "authorName": "Ana Carolina Silva",
+      "category": "devops",
+      "tags": ["monorepo", "pnpm", "javascript"],
+      "publishedAt": "2026-02-10T09:00:00Z",
+      "readTimeMinutes": 8,
+      "likes": 142
+    },
+    {
+      "id": 2,
+      "title": "Testes E2E com Playwright: guia prático",
+      "slug": "testes-e2e-playwright-guia",
+      "excerpt": "Do setup ao CI — cobrindo fluxos críticos sem flakiness.",
+      "body": "Playwright tornou os testes end-to-end mais confiáveis e rápidos...",
+      "authorId": 2,
+      "authorName": "Bruno Mendes",
+      "category": "testing",
+      "tags": ["playwright", "e2e", "ci"],
+      "publishedAt": "2026-01-28T14:30:00Z",
+      "readTimeMinutes": 12,
+      "likes": 98
+    },
+    {
+      "id": 3,
+      "title": "Design tokens: do Figma ao CSS",
+      "slug": "design-tokens-figma-css",
+      "excerpt": "Padronize cores, tipografia e espaçamento em três camadas.",
+      "body": "Design tokens são a ponte entre design e código...",
+      "authorId": 3,
+      "authorName": "Carla Fernandes",
+      "category": "design",
+      "tags": ["design-system", "css", "figma"],
+      "publishedAt": "2026-01-15T11:00:00Z",
+      "readTimeMinutes": 6,
+      "likes": 76
+    },
+    {
+      "id": 4,
+      "title": "API REST: boas práticas de paginação",
+      "slug": "api-rest-paginacao",
+      "excerpt": "Offset vs cursor, meta fields e links HATEOAS simplificados.",
+      "body": "Paginação mal implementada é uma das maiores fontes de bugs em APIs...",
+      "authorId": 4,
+      "authorName": "Diego Oliveira",
+      "category": "backend",
+      "tags": ["api", "rest", "pagination"],
+      "publishedAt": "2025-12-05T16:00:00Z",
+      "readTimeMinutes": 10,
+      "likes": 215
+    }
+  ],
+  "meta": {
+    "total": 4,
+    "page": 1,
+    "perPage": 10
+  }
+}

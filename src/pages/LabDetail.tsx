@@ -1,14 +1,11 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { LabsShell } from "@/components/labs/LabsShell";
+import { LabsPage } from "@/components/labs/LabsPage";
 import { CodeBlock } from "@/components/labs/CodeBlock";
 import { Reveal } from "@/components/shared/Reveal";
 import { TagPill } from "@/components/shared/TagPill";
 import { Card } from "@/components/shared/Card";
-import {
-  sectionClassName,
-  sectionContentClassName,
-} from "@/components/shared/sectionStyles";
 import { Button } from "@/components/ui/button";
 import { cn, focusRing } from "@/lib/utils";
 import { categoryLabel, getLabBySlug } from "@/data/labs";
@@ -22,27 +19,26 @@ const LabDetail = () => {
   const lab = slug ? getLabBySlug(slug) : undefined;
 
   if (!lab) {
-    return <Navigate to="/labs" replace />;
+    return <Navigate to="/labs/scripts" replace />;
   }
+
+  const backHref = lab.section === "docs" ? "/labs/docs" : "/labs/scripts";
+  const backLabel = lab.section === "docs" ? tx.labs.backToDocs : tx.labs.backToScripts;
 
   return (
     <LabsShell>
-      <article
-        className={sectionClassName("plain")}
-        aria-labelledby="lab-detail-title"
-      >
-        <div className="container mx-auto px-6">
-          <div className={cn(sectionContentClassName, "space-y-10 sm:space-y-12")}>
+      <LabsPage labelledBy="lab-detail-title" as="article">
+        <div className="space-y-8 sm:space-y-10">
             <Reveal>
               <Link
-                to="/labs"
+                to={backHref}
                 className={cn(
-                  "inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer rounded-md mb-6",
+                  "inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer rounded-md mb-4",
                   focusRing
                 )}
               >
                 <ArrowLeft className="size-4" aria-hidden />
-                {tx.labs.backToIndex}
+                {backLabel}
               </Link>
 
               <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -54,19 +50,13 @@ const LabDetail = () => {
 
               <h1
                 id="lab-detail-title"
-                className="text-3xl sm:text-4xl font-medium tracking-tight mb-4"
+                className="text-3xl font-medium tracking-tight mb-3 text-balance"
               >
                 {lab.title[lang]}
               </h1>
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-2xl">
+              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-prose text-pretty">
                 {lab.summary[lang]}
               </p>
-
-              <div className="flex flex-wrap gap-1.5 mt-5">
-                {lab.tags.map((tag) => (
-                  <TagPill key={tag}>{tag}</TagPill>
-                ))}
-              </div>
             </Reveal>
 
             {lab.installCommand && (
@@ -216,9 +206,8 @@ const LabDetail = () => {
                 </section>
               </Reveal>
             )}
-          </div>
         </div>
-      </article>
+      </LabsPage>
     </LabsShell>
   );
 };

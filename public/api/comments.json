@@ -1,0 +1,44 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "postId": 1,
+      "authorId": 2,
+      "authorName": "Bruno Mendes",
+      "body": "Excelente artigo! Implementei exatamente isso no nosso monorepo e funcionou perfeitamente.",
+      "createdAt": "2026-02-11T08:30:00Z",
+      "likes": 12
+    },
+    {
+      "id": 2,
+      "postId": 1,
+      "authorId": 4,
+      "authorName": "Diego Oliveira",
+      "body": "Só faltou mencionar o cache do pnpm — faz diferença enorme no CI.",
+      "createdAt": "2026-02-11T10:15:00Z",
+      "likes": 8
+    },
+    {
+      "id": 3,
+      "postId": 2,
+      "authorId": 1,
+      "authorName": "Ana Carolina Silva",
+      "body": "O trace viewer do Playwright salvou nosso time na última sprint.",
+      "createdAt": "2026-01-29T11:00:00Z",
+      "likes": 5
+    },
+    {
+      "id": 4,
+      "postId": 4,
+      "authorId": 5,
+      "authorName": "Elena Rodriguez",
+      "body": "Cursor-based pagination é superior para feeds infinitos. Offset só funciona bem em tabelas pequenas.",
+      "createdAt": "2025-12-06T09:20:00Z",
+      "likes": 23
+    }
+  ],
+  "meta": {
+    "total": 4,
+    "postId": null
+  }
+}

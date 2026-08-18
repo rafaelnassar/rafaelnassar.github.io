@@ -1,0 +1,59 @@
+{
+  "data": [
+    {
+      "id": "ORD-2026-001",
+      "customerId": 1,
+      "customerName": "Ana Carolina Silva",
+      "status": "delivered",
+      "items": [
+        { "productId": 101, "name": "Notebook Pro 15", "quantity": 1, "unitPrice": 5499.9 },
+        { "productId": 102, "name": "Teclado Mecânico RGB", "quantity": 1, "unitPrice": 349.9 }
+      ],
+      "subtotal": 5849.8,
+      "shipping": 29.9,
+      "total": 5879.7,
+      "currency": "BRL",
+      "paymentMethod": "credit_card",
+      "createdAt": "2026-01-10T10:00:00Z",
+      "deliveredAt": "2026-01-15T14:30:00Z"
+    },
+    {
+      "id": "ORD-2026-002",
+      "customerId": 2,
+      "customerName": "Bruno Mendes",
+      "status": "shipped",
+      "items": [
+        { "productId": 103, "name": "Monitor Ultrawide 34\"", "quantity": 1, "unitPrice": 2899.0 }
+      ],
+      "subtotal": 2899.0,
+      "shipping": 49.9,
+      "total": 2948.9,
+      "currency": "BRL",
+      "paymentMethod": "pix",
+      "createdAt": "2026-02-05T16:20:00Z",
+      "deliveredAt": null
+    },
+    {
+      "id": "ORD-2026-003",
+      "customerId": 3,
+      "customerName": "Carla Fernandes",
+      "status": "pending",
+      "items": [
+        { "productId": 104, "name": "Cadeira Ergonômica", "quantity": 2, "unitPrice": 1899.0 },
+        { "productId": 105, "name": "Webcam 4K Pro", "quantity": 1, "unitPrice": 599.9 }
+      ],
+      "subtotal": 4397.9,
+      "shipping": 0,
+      "total": 4397.9,
+      "currency": "BRL",
+      "paymentMethod": "boleto",
+      "createdAt": "2026-02-14T09:45:00Z",
+      "deliveredAt": null
+    }
+  ],
+  "meta": {
+    "total": 3,
+    "page": 1,
+    "perPage": 10
+  }
+}

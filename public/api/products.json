@@ -1,0 +1,79 @@
+{
+  "data": [
+    {
+      "id": 101,
+      "name": "Notebook Pro 15",
+      "slug": "notebook-pro-15",
+      "description": "Notebook com processador de última geração, 16GB RAM e SSD 512GB.",
+      "price": 5499.9,
+      "currency": "BRL",
+      "category": "electronics",
+      "stock": 42,
+      "rating": 4.7,
+      "reviewsCount": 128,
+      "image": "https://picsum.photos/seed/notebook/400/300",
+      "tags": ["laptop", "work", "premium"]
+    },
+    {
+      "id": 102,
+      "name": "Teclado Mecânico RGB",
+      "slug": "teclado-mecanico-rgb",
+      "description": "Switch blue, layout ABNT2, retroiluminação RGB por tecla.",
+      "price": 349.9,
+      "currency": "BRL",
+      "category": "accessories",
+      "stock": 150,
+      "rating": 4.5,
+      "reviewsCount": 89,
+      "image": "https://picsum.photos/seed/keyboard/400/300",
+      "tags": ["keyboard", "gaming", "rgb"]
+    },
+    {
+      "id": 103,
+      "name": "Monitor Ultrawide 34\"",
+      "slug": "monitor-ultrawide-34",
+      "description": "3440x1440, 144Hz, HDR400, ideal para produtividade e dev.",
+      "price": 2899.0,
+      "currency": "BRL",
+      "category": "electronics",
+      "stock": 18,
+      "rating": 4.8,
+      "reviewsCount": 56,
+      "image": "https://picsum.photos/seed/monitor/400/300",
+      "tags": ["monitor", "ultrawide", "144hz"]
+    },
+    {
+      "id": 104,
+      "name": "Cadeira Ergonômica",
+      "slug": "cadeira-ergonomica",
+      "description": "Apoio lombar ajustável, braços 4D, tecido respirável.",
+      "price": 1899.0,
+      "currency": "BRL",
+      "category": "furniture",
+      "stock": 25,
+      "rating": 4.6,
+      "reviewsCount": 203,
+      "image": "https://picsum.photos/seed/chair/400/300",
+      "tags": ["chair", "ergonomic", "home-office"]
+    },
+    {
+      "id": 105,
+      "name": "Webcam 4K Pro",
+      "slug": "webcam-4k-pro",
+      "description": "4K 30fps, autofoco, microfone integrado com cancelamento de ruído.",
+      "price": 599.9,
+      "currency": "BRL",
+      "category": "accessories",
+      "stock": 67,
+      "rating": 4.3,
+      "reviewsCount": 41,
+      "image": "https://picsum.photos/seed/webcam/400/300",
+      "tags": ["webcam", "4k", "streaming"]
+    }
+  ],
+  "meta": {
+    "total": 5,
+    "page": 1,
+    "perPage": 10
+  }
+}

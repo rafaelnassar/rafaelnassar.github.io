@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Recurso não encontrado",
+    "status": 404,
+    "details": "O recurso solicitado não existe ou foi removido.",
+    "timestamp": "2026-08-17T23:53:00Z",
+    "path": "/api/v1/resources/999"
+  }
+}

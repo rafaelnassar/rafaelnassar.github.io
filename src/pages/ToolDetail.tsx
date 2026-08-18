@@ -1,0 +1,59 @@
+import { Link, Navigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { LabsShell } from "@/components/labs/LabsShell";
+import { LabsPage } from "@/components/labs/LabsPage";
+import { Reveal } from "@/components/shared/Reveal";
+import { cn, focusRing } from "@/lib/utils";
+import { getToolBySlug } from "@/data/tools";
+import { toolComponents } from "@/components/tools/registry";
+import { useLang } from "@/lib/i18n";
+import { t } from "@/data/translations";
+
+const ToolDetail = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const { lang } = useLang();
+  const tx = t(lang);
+  const tool = slug ? getToolBySlug(slug) : undefined;
+  const ToolUi = slug ? toolComponents[slug] : undefined;
+
+  if (!tool || !ToolUi) {
+    return <Navigate to="/labs/ferramentas" replace />;
+  }
+
+  return (
+    <LabsShell>
+      <LabsPage labelledBy="tool-detail-title" as="article">
+        <div className="space-y-6">
+          <Reveal>
+            <Link
+              to="/labs/ferramentas"
+              className={cn(
+                "inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer rounded-md mb-4",
+                focusRing
+              )}
+            >
+              <ArrowLeft className="size-4 shrink-0" aria-hidden />
+              {tx.labs.backToTools}
+            </Link>
+
+            <h1
+              id="tool-detail-title"
+              className="text-3xl font-medium tracking-tight mb-3 text-balance"
+            >
+              {tool.title[lang]}
+            </h1>
+            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-prose text-pretty">
+              {tool.summary[lang]}
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.05}>
+            <ToolUi />
+          </Reveal>
+        </div>
+      </LabsPage>
+    </LabsShell>
+  );
+};
+
+export default ToolDetail;

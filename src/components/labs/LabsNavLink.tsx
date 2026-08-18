@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { FlaskConical } from "lucide-react";
 import { cn, focusRing } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
@@ -16,17 +16,20 @@ interface LabsNavLinkProps {
 export const LabsNavLink = ({ className, onNavigate }: LabsNavLinkProps) => {
   const { lang } = useLang();
   const tx = t(lang);
+  const { pathname } = useLocation();
+  const isLabs = pathname.startsWith("/labs");
 
   return (
     <NavLink
-      to="/labs"
+      to="/labs/ferramentas"
       onClick={onNavigate}
-      className={({ isActive }) =>
+      aria-current={isLabs ? "page" : undefined}
+      className={() =>
         cn(
           "inline-flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 cursor-pointer transition-all duration-200",
           "border",
           focusRing,
-          isActive
+          isLabs
             ? "border-foreground/20 bg-secondary text-foreground"
             : "border-border text-foreground hover:border-foreground/30 hover:bg-secondary",
           className

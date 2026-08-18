@@ -1,0 +1,63 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Configurar CI/CD no repositório",
+      "completed": true,
+      "priority": "high",
+      "dueDate": "2026-02-01",
+      "userId": 1,
+      "tags": ["devops", "ci"]
+    },
+    {
+      "id": 2,
+      "title": "Escrever testes para o módulo de auth",
+      "completed": false,
+      "priority": "high",
+      "dueDate": "2026-02-15",
+      "userId": 1,
+      "tags": ["testing", "auth"]
+    },
+    {
+      "id": 3,
+      "title": "Revisar PR #42 — refactor do dashboard",
+      "completed": false,
+      "priority": "medium",
+      "dueDate": "2026-02-12",
+      "userId": 2,
+      "tags": ["review"]
+    },
+    {
+      "id": 4,
+      "title": "Atualizar documentação da API v2",
+      "completed": false,
+      "priority": "low",
+      "dueDate": "2026-03-01",
+      "userId": 3,
+      "tags": ["docs", "api"]
+    },
+    {
+      "id": 5,
+      "title": "Migrar banco de staging para PostgreSQL 16",
+      "completed": true,
+      "priority": "medium",
+      "dueDate": "2026-01-20",
+      "userId": 4,
+      "tags": ["database", "migration"]
+    },
+    {
+      "id": 6,
+      "title": "Implementar dark mode no app mobile",
+      "completed": false,
+      "priority": "medium",
+      "dueDate": "2026-02-28",
+      "userId": 5,
+      "tags": ["mobile", "ui"]
+    }
+  ],
+  "meta": {
+    "total": 6,
+    "completed": 2,
+    "pending": 4
+  }
+}

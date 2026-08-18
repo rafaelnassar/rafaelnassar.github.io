@@ -1,8 +1,10 @@
 /**
- * Labs — scripts, docs e utilitários públicos.
- * Fonte única bilíngue; cada item vira /labs/:slug.
+ * Labs — scripts e documentação públicos.
+ * Ferramentas interativas vivem em src/data/tools.ts (/labs/ferramentas).
+ * Cada Lab vira /labs/:slug.
  */
 
+export type LabSection = "scripts" | "docs";
 export type LabCategory = "docker" | "cli" | "docs";
 
 export interface LabStep {
@@ -20,6 +22,7 @@ export interface LabTool {
 
 export interface Lab {
   slug: string;
+  section: LabSection;
   category: LabCategory;
   title: { pt: string; en: string };
   summary: { pt: string; en: string };
@@ -36,6 +39,7 @@ export interface Lab {
 export const labs: Lab[] = [
   {
     slug: "docker-tools",
+    section: "scripts",
     category: "docker",
     title: {
       pt: "Supabase self-host no Docker",
@@ -154,6 +158,7 @@ export const labs: Lab[] = [
   },
   {
     slug: "wsl2-windows",
+    section: "scripts",
     category: "cli",
     title: {
       pt: "WSL 2 do zero no Windows",
@@ -355,10 +360,259 @@ export const labs: Lab[] = [
     ],
     sourcePaths: ["/wsl"],
   },
+  {
+    slug: "hibp-k-anonymity",
+    section: "docs",
+    category: "docs",
+    title: {
+      pt: "Have I Been Pwned sem enviar a senha",
+      en: "Have I Been Pwned without sending the password",
+    },
+    summary: {
+      pt: "Como a API Pwned Passwords funciona com k-anonymity: hash SHA-1 local, prefixo de 5 caracteres e comparação no cliente.",
+      en: "How the Pwned Passwords API uses k-anonymity: local SHA-1 hash, 5-character prefix, and a client-side match.",
+    },
+    tags: ["HIBP", "SHA-1", "Privacidade"],
+    updatedAt: "2026-08-17",
+    prerequisites: [
+      {
+        pt: "Navegador com Web Crypto (HTTPS ou localhost)",
+        en: "Browser with Web Crypto (HTTPS or localhost)",
+      },
+    ],
+    steps: [
+      {
+        title: {
+          pt: "Hash local",
+          en: "Hash locally",
+        },
+        body: {
+          pt: "A senha vira SHA-1 no próprio navegador. Nada do texto original vai para a rede.",
+          en: "The password becomes SHA-1 in the browser. None of the original text goes on the wire.",
+        },
+        code: "const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(password))\nconst hex = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()",
+        codeLang: "javascript",
+      },
+      {
+        title: {
+          pt: "Enviar só o prefixo",
+          en: "Send only the prefix",
+        },
+        body: {
+          pt: "Os 5 primeiros caracteres identificam um “balde” de hashes. A API devolve os sufixos desse balde — com padding, entre 800 e 1.000 linhas.",
+          en: "The first 5 characters identify a hash bucket. The API returns suffixes in that bucket — with padding, between 800 and 1,000 lines.",
+        },
+        code: "GET https://api.pwnedpasswords.com/range/{prefix}\nAdd-Padding: true",
+        codeLang: "http",
+      },
+      {
+        title: {
+          pt: "Comparar no cliente",
+          en: "Match on the client",
+        },
+        body: {
+          pt: "Procure o restante do hash (35 caracteres) na resposta. Se aparecer, o número depois dos dois-pontos é quantas vezes aquela senha foi vista em vazamentos.",
+          en: "Look up the remaining 35 hash characters in the response. If present, the number after the colon is how many times that password was seen in breaches.",
+        },
+      },
+    ],
+    notes: [
+      {
+        pt: "Não consulte a cada tecla: alguém no caminho (ex.: Cloudflare) poderia reconstruir a senha a partir da sequência de prefixos. Verifique no submit.",
+        en: "Do not query on every keystroke: someone on the path (e.g. Cloudflare) could reconstruct the password from the prefix sequence. Check on submit.",
+      },
+      {
+        pt: "A API Pwned Passwords é gratuita, sem chave e com CORS. Busca por e-mail no HIBP exige assinatura e não deve ser chamada do browser.",
+        en: "The Pwned Passwords API is free, keyless, and CORS-enabled. HIBP email search requires a subscription and must not be called from the browser.",
+      },
+    ],
+    sourcePaths: ["https://haveibeenpwned.com/API/v3#PwnedPasswords"],
+  },
+  {
+    slug: "cpf-cnpj-digitos",
+    section: "docs",
+    category: "docs",
+    title: {
+      pt: "Dígitos verificadores de CPF e CNPJ",
+      en: "CPF and CNPJ check digits",
+    },
+    summary: {
+      pt: "Módulo 11 usado na Receita Federal: pesos, resto e rejeição de sequências repetidas. Serve para testes — não para fraude.",
+      en: "Modulo 11 used by the Brazilian tax authority: weights, remainder, and rejection of repeated sequences. For tests — not fraud.",
+    },
+    tags: ["CPF", "CNPJ", "Brasil"],
+    updatedAt: "2026-08-17",
+    prerequisites: [
+      {
+        pt: "Usar só em homologação, seeds e testes automatizados",
+        en: "Use only in staging, seeds, and automated tests",
+      },
+    ],
+    steps: [
+      {
+        title: {
+          pt: "CPF — primeiro dígito",
+          en: "CPF — first digit",
+        },
+        body: {
+          pt: "Some os 9 dígitos multiplicados por 10, 9, …, 2. Resto = (soma × 10) % 11. Se o resto for 10, o dígito é 0; senão é o próprio resto.",
+          en: "Sum the 9 digits multiplied by 10, 9, …, 2. Remainder = (sum × 10) % 11. If the remainder is 10, the digit is 0; otherwise it is the remainder itself.",
+        },
+      },
+      {
+        title: {
+          pt: "CPF — segundo dígito",
+          en: "CPF — second digit",
+        },
+        body: {
+          pt: "Repita com os 10 dígitos e pesos 11…2. Rejeite 000.000.000-00, 111.111.111-11 e o restante das sequências iguais.",
+          en: "Repeat with the 10 digits and weights 11…2. Reject 000.000.000-00, 111.111.111-11, and the rest of the identical sequences.",
+        },
+      },
+      {
+        title: {
+          pt: "CNPJ",
+          en: "CNPJ",
+        },
+        body: {
+          pt: "12 dígitos-base. 1º DV: pesos 5,4,3,2,9,8,7,6,5,4,3,2. 2º DV: 6,5,4,3,2,9,8,7,6,5,4,3,2. Dígito = 0 se resto < 2, senão 11 − resto.",
+          en: "12 base digits. 1st check digit: weights 5,4,3,2,9,8,7,6,5,4,3,2. 2nd: 6,5,4,3,2,9,8,7,6,5,4,3,2. Digit = 0 if remainder < 2, else 11 − remainder.",
+        },
+      },
+    ],
+    notes: [
+      {
+        pt: "CPF/CNPJ gerados aqui passam no algoritmo, mas não existem na base da Receita. Usar em produção como identidade real é crime.",
+        en: "CPF/CNPJ values generated here pass the algorithm but do not exist in the tax authority database. Using them in production as a real identity is a crime.",
+      },
+    ],
+  },
+  {
+    slug: "git-essentials",
+    section: "docs",
+    category: "docs",
+    title: {
+      pt: "Git no dia a dia",
+      en: "Everyday Git",
+    },
+    summary: {
+      pt: "Comandos que resolvem 90% do fluxo: status limpo, rebase curto, undo seguro e histórico legível.",
+      en: "Commands that cover 90% of the flow: clean status, short rebase, safe undo, and a readable history.",
+    },
+    tags: ["Git", "CLI"],
+    updatedAt: "2026-08-17",
+    prerequisites: [
+      {
+        pt: "Git 2.30+ no PATH",
+        en: "Git 2.30+ on PATH",
+      },
+    ],
+    steps: [
+      {
+        title: {
+          pt: "Ver o que vai entrar no commit",
+          en: "See what will go into the commit",
+        },
+        code: "git status -sb\ngit diff --stat\ngit diff --cached",
+        codeLang: "shell",
+      },
+      {
+        title: {
+          pt: "Commit atômico",
+          en: "Atomic commit",
+        },
+        body: {
+          pt: "Uma intenção por commit. Mensagem no imperativo, em uma linha quando couber.",
+          en: "One intent per commit. Imperative mood; one line when it fits.",
+        },
+        code: "git add -p\ngit commit -m \"fix: keep labs nav active on tool routes\"",
+        codeLang: "shell",
+      },
+      {
+        title: {
+          pt: "Atualizar a branch sem merge commit",
+          en: "Update the branch without a merge commit",
+        },
+        code: "git fetch origin\ngit rebase origin/main",
+        codeLang: "shell",
+      },
+      {
+        title: {
+          pt: "Desfazer com segurança",
+          en: "Undo safely",
+        },
+        body: {
+          pt: "restore não reescreve commits já publicados. reset --hard só em mudanças locais que você aceita perder.",
+          en: "restore does not rewrite published commits. reset --hard only for local changes you are willing to lose.",
+        },
+        code: "git restore --staged .\ngit restore .\ngit reset --soft HEAD~1",
+        codeLang: "shell",
+      },
+    ],
+    notes: [
+      {
+        pt: "Não use rebase em commits que outras pessoas já puxaram. Prefira revert.",
+        en: "Do not rebase commits other people already pulled. Prefer revert.",
+      },
+    ],
+  },
+  {
+    slug: "http-status",
+    section: "docs",
+    category: "docs",
+    title: {
+      pt: "HTTP status que importam",
+      en: "HTTP statuses that matter",
+    },
+    summary: {
+      pt: "Mapa curto dos códigos que realmente aparecem em API e frontend — sem decorar a tabela inteira.",
+      en: "A short map of the codes that actually show up in APIs and frontends — without memorizing the whole table.",
+    },
+    tags: ["HTTP", "API"],
+    updatedAt: "2026-08-17",
+    prerequisites: [
+      {
+        pt: "Qualquer cliente HTTP (browser, curl, Insomnia)",
+        en: "Any HTTP client (browser, curl, Insomnia)",
+      },
+    ],
+    steps: [
+      {
+        title: { pt: "2xx — deu certo", en: "2xx — success" },
+        body: {
+          pt: "200 OK leitura; 201 Created recurso novo; 204 No Content delete/ação sem corpo.",
+          en: "200 OK for reads; 201 Created for a new resource; 204 No Content for delete/action with no body.",
+        },
+      },
+      {
+        title: { pt: "4xx — o cliente errou", en: "4xx — the client was wrong" },
+        body: {
+          pt: "400 payload inválido; 401 falta auth; 403 auth ok mas sem permissão; 404 não existe; 409 conflito (duplicado); 422 regra de negócio; 429 rate limit.",
+          en: "400 invalid payload; 401 missing auth; 403 auth ok but no permission; 404 missing; 409 conflict (duplicate); 422 business rule; 429 rate limit.",
+        },
+      },
+      {
+        title: { pt: "5xx — o servidor errou", en: "5xx — the server was wrong" },
+        body: {
+          pt: "500 bug não tratado; 502/504 gateway/timeout; 503 manutenção ou sobrecarga. Não jogue 500 em erro de validação.",
+          en: "500 unhandled bug; 502/504 gateway/timeout; 503 maintenance or overload. Do not return 500 for validation errors.",
+        },
+      },
+    ],
+    notes: [
+      {
+        pt: "Para o usuário, traduza o código em ação: o que fazer agora — não o número cru.",
+        en: "For the user, translate the code into an action: what to do next — not the raw number.",
+      },
+    ],
+  },
 ];
 
 export const getLabBySlug = (slug: string): Lab | undefined =>
   labs.find((lab) => lab.slug === slug);
+
+export const getLabsBySection = (section: LabSection): Lab[] =>
+  labs.filter((lab) => lab.section === section);
 
 export const categoryLabel: Record<
   LabCategory,

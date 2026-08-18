@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Dados inválidos no payload",
+    "status": 422,
+    "details": [
+      { "field": "email", "message": "Formato de e-mail inválido" },
+      { "field": "age", "message": "Deve ser um número entre 18 e 120" },
+      { "field": "cpf", "message": "CPF inválido" }
+    ],
+    "timestamp": "2026-08-17T23:53:00Z",
+    "path": "/api/v1/users"
+  }
+}

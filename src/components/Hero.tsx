@@ -65,17 +65,6 @@ export const Hero = () => {
         variants={reduceMotion ? undefined : heroStagger}
         className={cn(sectionProseClassName, 'text-center')}
       >
-        <motion.div variants={reduceMotion ? undefined : fadeUpSmall} className="mb-6">
-          {/*
-            Pílula mantida (decisão estética). Removido o dot verde pulsante
-            (clichê SaaS-platform) e ajustado contraste de text-foreground/70
-            (borderline 4.5:1) → text-foreground (AAA sobre bg-secondary).
-          */}
-          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-secondary/80 text-sm text-foreground">
-            {tx.hero.badge}
-          </span>
-        </motion.div>
-
         <motion.h1
           variants={reduceMotion ? undefined : fadeUpSmall}
           className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight mb-4"
