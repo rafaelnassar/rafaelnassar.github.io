@@ -19,33 +19,7 @@ import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
 
-const RADIUS = 96;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-const ARC = 0.72;
-const DASH = CIRCUMFERENCE * ARC;
 const LERP = 0.07;
-/** Escala de velocímetro (tipo Ookla): mais resolução em baixas velocidades, 1 Gbps no fim. */
-const SPEED_MARKS = [0, 10, 25, 50, 100, 250, 500, 1000];
-
-const speedToPct = (mbps: number): number => {
-  if (mbps <= 0) return 0;
-  const last = SPEED_MARKS[SPEED_MARKS.length - 1] ?? 1000;
-  if (mbps >= last) return 1;
-  for (let i = 1; i < SPEED_MARKS.length; i += 1) {
-    const hi = SPEED_MARKS[i] ?? last;
-    const lo = SPEED_MARKS[i - 1] ?? 0;
-    if (mbps <= hi) {
-      const t = (mbps - lo) / Math.max(1, hi - lo);
-      return (i - 1 + t) / (SPEED_MARKS.length - 1);
-    }
-  }
-  return 1;
-};
-
-const arcPoint = (t: number, radius: number): { x: number; y: number } => {
-  const rad = ((143 + t * ARC * 360) * Math.PI) / 180;
-  return { x: 120 + radius * Math.cos(rad), y: 128 + radius * Math.sin(rad) };
-};
 
 const STEPS: Array<Extract<SpeedPhase, "ping" | "download" | "upload">> = [
   "ping",
@@ -197,14 +171,6 @@ export const SpeedTestTool = () => {
     reduceMotion,
     `${runId}-${gaugeUnit}`
   );
-  const ringTarget =
-    phase === "idle" || phase === "error"
-      ? 0
-      : gaugeUnit === "mbps"
-        ? speedToPct(gaugeTarget)
-        : progress.ratio;
-  const ring = useSmoothNumber(ringTarget, running || phase === "done", reduceMotion, String(runId));
-  const offset = DASH * (1 - Math.min(1, Math.max(0, ring)));
   const display = formatGauge(shown, gaugeUnit);
   const empty = display === "—";
 
@@ -264,73 +230,19 @@ export const SpeedTestTool = () => {
           className="rounded-2xl border border-border bg-secondary/20 px-4 py-8 sm:px-6 sm:py-10"
           aria-busy={running}
         >
-          <div className="relative mx-auto flex size-[200px] sm:size-[220px] items-center justify-center">
-            <svg
-              viewBox="0 0 240 240"
-              className="absolute inset-0 size-full text-foreground"
+          <div className="flex flex-col items-center text-center">
+            <p
+              className={cn(
+                "text-4xl sm:text-6xl font-medium tabular-nums tracking-tighter leading-none",
+                empty && "text-muted-foreground"
+              )}
               aria-hidden
             >
-              <g transform="translate(120 128) rotate(143)">
-                <circle
-                  r={RADIUS}
-                  fill="none"
-                  className="stroke-border"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeDasharray={`${DASH} ${CIRCUMFERENCE}`}
-                />
-                <circle
-                  r={RADIUS}
-                  fill="none"
-                  className="stroke-foreground"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeDasharray={`${DASH} ${CIRCUMFERENCE}`}
-                  strokeDashoffset={offset}
-                  style={{
-                    transition: reduceMotion ? undefined : "stroke-dashoffset 120ms linear",
-                  }}
-                />
-              </g>
-              {gaugeUnit === "mbps"
-                ? (
-                    [
-                      { t: 0, label: "0" },
-                      { t: speedToPct(100), label: "100" },
-                      { t: 1, label: "1G" },
-                    ] as const
-                  ).map(({ t, label }) => {
-                    const point = arcPoint(t, 114);
-                    return (
-                      <text
-                        key={label}
-                        x={point.x}
-                        y={point.y}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="fill-muted-foreground"
-                        fontSize="9"
-                      >
-                        {label}
-                      </text>
-                    );
-                  })
-                : null}
-            </svg>
-
-            <div className="relative z-[1] flex flex-col items-center pt-3" aria-hidden>
-              <p
-                className={cn(
-                  "text-5xl sm:text-6xl font-medium tabular-nums tracking-tighter leading-none",
-                  empty && "text-muted-foreground"
-                )}
-              >
-                {display}
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                {gaugeUnit === "ms" ? tx.tools.speedMs : tx.tools.speedMbps}
-              </p>
-            </div>
+              {display}
+            </p>
+            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              {gaugeUnit === "ms" ? tx.tools.speedMs : tx.tools.speedMbps}
+            </p>
           </div>
 
           {resultSummary ? <p className="sr-only">{resultSummary}</p> : null}
@@ -344,7 +256,7 @@ export const SpeedTestTool = () => {
           </p>
 
           <ol
-            className="mt-6 flex items-center justify-center gap-5 sm:gap-8"
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-8"
             aria-label={tx.tools.speedTesting}
           >
             {STEPS.map((item, index) => {
@@ -401,7 +313,7 @@ export const SpeedTestTool = () => {
           </ToolActions>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3">
           {STEPS.map((item) => {
             const metric = metricValue(item);
             const filled = metric.value !== "—";
@@ -411,17 +323,17 @@ export const SpeedTestTool = () => {
               <div
                 key={item}
                 className={cn(
-                  "rounded-xl border bg-background px-2.5 py-3 sm:px-3 sm:py-3.5 transition-colors duration-300",
+                  "min-w-0 rounded-xl border bg-background px-2 py-3 sm:px-3 sm:py-3.5 transition-colors duration-300",
                   active && "border-foreground/25",
                   filled && !active && "border-border",
                   !filled && !active && "border-border opacity-55"
                 )}
               >
-                <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
+                <p className="mb-1.5 flex min-w-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground sm:gap-1.5 sm:text-[11px] sm:tracking-[0.14em]">
                   <Icon className="size-3 shrink-0" aria-hidden />
-                  {stepLabel(item)}
+                  <span className="min-w-0 truncate">{stepLabel(item)}</span>
                 </p>
-                <p className="text-lg sm:text-2xl font-medium tabular-nums tracking-tight">
+                <p className="min-w-0 text-base font-medium tabular-nums tracking-tight sm:text-2xl">
                   {metric.value}
                   <span className="ml-1 text-[11px] font-normal text-muted-foreground">
                     {metric.unit}
