@@ -80,7 +80,7 @@ export const CreditCardGenerator = () => {
 
               <QaDisclaimer text={tx.tools.cardDisclaimer} />
 
-              <ToolActions className="justify-between">
+              <ToolActions className="flex-col-reverse items-stretch sm:flex-row sm:items-center sm:justify-between">
                 <CheckRow
                   id="card-format"
                   label={tx.tools.formatted}
@@ -95,7 +95,9 @@ export const CreditCardGenerator = () => {
                     }));
                   }}
                 />
-                <Button type="submit">{tx.tools.generate}</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  {tx.tools.generate}
+                </Button>
               </ToolActions>
             </div>
           }

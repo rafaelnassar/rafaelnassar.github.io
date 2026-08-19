@@ -122,26 +122,23 @@ const THEMES: Record<CreditCardBrand | "unknown", BrandTheme> = {
   },
 };
 
-const BRAND_MARKS: Record<
-  CreditCardBrand,
-  { src: string; className: string; onLight?: boolean }
-> = {
-  visa: { src: visaMark, className: "h-7" },
-  mastercard: { src: mastercardMark, className: "h-9" },
-  amex: { src: amexMark, className: "h-6" },
-  diners: { src: dinersMark, className: "h-9" },
-  discover: { src: discoverMark, className: "h-7" },
-  elo: { src: eloMark, className: "h-8" },
-  hipercard: { src: hipercardMark, className: "h-6", onLight: true },
+const BRAND_MARKS: Record<CreditCardBrand, { src: string; onLight?: boolean }> = {
+  visa: { src: visaMark },
+  mastercard: { src: mastercardMark },
+  amex: { src: amexMark },
+  diners: { src: dinersMark },
+  discover: { src: discoverMark },
+  elo: { src: eloMark },
+  hipercard: { src: hipercardMark, onLight: true },
 };
 
-const CARD_WIDTH = "w-full max-w-[23.5rem]";
+const CARD_WIDTH = "w-full";
 
 const brandLabel = (brand: CreditCardBrand | null): string =>
   CREDIT_CARD_BRANDS.find((item) => item.id === brand)?.label ?? "";
 
 const ContactlessMark = () => (
-  <svg viewBox="0 0 24 24" className="size-6 text-white/80" aria-hidden>
+  <svg viewBox="0 0 24 24" className="size-5 text-white/80 sm:size-6" aria-hidden>
     <path
       d="M9 7.2c3.2-2.4 7.6-2.4 10.8 0M10.6 10.2c2.2-1.6 5.2-1.6 7.4 0M12.2 13.2c1.2-.9 2.8-.9 4 0"
       fill="none"
@@ -154,7 +151,7 @@ const ContactlessMark = () => (
 
 const Chip = () => (
   <div
-    className="relative h-9 w-12 overflow-hidden rounded-[0.4rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.25)]"
+    className="relative h-7 w-10 overflow-hidden rounded-[0.35rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.25)] sm:h-9 sm:w-12 sm:rounded-[0.4rem]"
     aria-hidden
   >
     <div className="absolute inset-0 bg-gradient-to-br from-amber-100 via-yellow-400 to-amber-700" />
@@ -175,7 +172,7 @@ const BrandMark = ({ brand }: { brand: CreditCardBrand }) => {
     <img
       src={mark.src}
       alt=""
-      className={cn("block w-auto max-w-[6.75rem] object-contain object-right", mark.className)}
+      className="block h-7 w-auto shrink-0 object-contain sm:h-8"
       aria-hidden
     />
   );
@@ -183,7 +180,7 @@ const BrandMark = ({ brand }: { brand: CreditCardBrand }) => {
   if (!mark.onLight) return image;
 
   return (
-    <span className="inline-flex items-center rounded-sm bg-white px-1.5 py-0.5">
+    <span className="inline-flex shrink-0 items-center rounded-sm bg-white px-1 py-0.5">
       {image}
     </span>
   );
@@ -241,7 +238,7 @@ const NumberGroups = ({
 
   return (
     <p
-      className="flex w-full min-w-0 items-baseline justify-between gap-2 font-mono font-medium tabular-nums whitespace-nowrap text-[1.05rem] tracking-[0.14em] sm:text-[1.18rem] sm:tracking-[0.16em]"
+      className="flex w-full min-w-0 items-baseline justify-between gap-1.5 font-mono font-medium tabular-nums whitespace-nowrap text-base tracking-[0.12em] sm:gap-2 sm:text-lg sm:tracking-[0.16em]"
       style={{ textShadow: "0 1px 0 rgba(0,0,0,0.22)" }}
     >
       {groups.map((group, groupIndex) => (
@@ -265,37 +262,43 @@ const stopCardGesture = (event: { stopPropagation: () => void }) => {
 };
 
 const CardCopy = ({ value, label }: { value: string; label: string }) => (
-  <span onClick={stopCardGesture} onKeyDown={stopCardGesture} className="shrink-0">
-    <CopyButton value={value} label={label} tone="onDark" className="!p-1.5" />
+  <span
+    onClick={stopCardGesture}
+    onKeyDown={stopCardGesture}
+    className="absolute -right-1.5 top-1/2 z-10 hidden -translate-y-1/2 sm:block"
+  >
+    <CopyButton value={value} label={label} tone="onDark" />
   </span>
 );
 
 const CardFaceShell = ({
   theme,
+  shineKey,
+  reduceMotion,
   children,
-  className,
 }: {
   theme: BrandTheme;
+  shineKey?: string;
+  reduceMotion: boolean;
   children: ReactNode;
-  className?: string;
 }) => (
-  <div
-    className={cn(
-      "absolute inset-0 overflow-hidden rounded-[1.15rem] p-5 text-white shadow-lg shadow-black/25 ring-1 ring-white/15",
-      className
-    )}
-    style={{
-      background: `linear-gradient(148deg, ${theme.from} 0%, ${theme.via} 46%, ${theme.to} 100%)`,
-    }}
-  >
+  <div className="absolute inset-0">
     <div
-      className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[inherit] opacity-40"
-      aria-hidden
+      className="absolute inset-0 overflow-hidden rounded-[1.15rem] shadow-lg shadow-black/25 ring-1 ring-white/15"
       style={{
-        background: "linear-gradient(180deg, rgba(255,255,255,0.16), transparent)",
+        background: `linear-gradient(148deg, ${theme.from} 0%, ${theme.via} 46%, ${theme.to} 100%)`,
       }}
-    />
-    {children}
+    >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-1/2 opacity-40"
+        aria-hidden
+        style={{
+          background: "linear-gradient(180deg, rgba(255,255,255,0.16), transparent)",
+        }}
+      />
+      <CardSheen shineKey={shineKey} reduceMotion={reduceMotion} />
+    </div>
+    <div className="relative z-10 flex h-full min-w-0 flex-col p-[1.15rem] sm:p-5">{children}</div>
   </div>
 );
 
@@ -369,7 +372,7 @@ export const CreditCardVisual = ({
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (reduceMotion) return;
+    if (reduceMotion || event.pointerType !== "mouse") return;
     const rect = event.currentTarget.getBoundingClientRect();
     const px = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
@@ -383,136 +386,119 @@ export const CreditCardVisual = ({
   };
 
   const front = (
-    <CardFaceShell theme={theme}>
-      <CardSheen shineKey={showFooter ? shineKey : undefined} reduceMotion={reduceMotion} />
-      <div className="relative z-10 flex h-full min-w-0 flex-col">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Chip />
-            <ContactlessMark />
-          </div>
-          <div className="flex min-h-10 min-w-[5.5rem] max-w-[7.25rem] shrink-0 items-center justify-end overflow-visible">
-            <AnimatePresence mode="wait">
-              {brand ? (
-                <motion.div
-                  key={brand}
-                  initial={reduceMotion ? false : { opacity: 0, y: 4, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: 4, scale: 0.96 }}
-                  transition={{ duration: durations.short, ease: easings.smooth }}
-                >
-                  <BrandMark brand={brand} />
-                </motion.div>
-              ) : (
-                <motion.span
-                  key="empty-brand"
-                  initial={reduceMotion ? false : { opacity: 0 }}
-                  animate={{ opacity: 0.28 }}
-                  className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-white"
-                >
-                  {detectedLabel}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
+    <CardFaceShell theme={theme} shineKey={showFooter ? shineKey : undefined} reduceMotion={reduceMotion}>
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <Chip />
+          <ContactlessMark />
         </div>
-
-        <div
-          className={cn(
-            "relative min-w-0",
-            showFooter ? "mt-auto" : "my-auto",
-            copies && "pr-8"
-          )}
-        >
-          <div className="min-w-0 overflow-hidden">
-            <NumberGroups number={number} brand={brand} color={theme.number} muted={theme.muted} />
-          </div>
-          {copies ? (
-            <span className="absolute -right-1 top-1/2 z-10 -translate-y-1/2 rounded-md bg-black/20 backdrop-blur-[2px]">
-              {copies.number}
-            </span>
-          ) : null}
+        <div className="flex shrink-0 items-center justify-end">
+          <AnimatePresence mode="wait">
+            {brand ? (
+              <motion.div
+                key={brand}
+                initial={reduceMotion ? false : { opacity: 0, y: 4, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: 4, scale: 0.96 }}
+                transition={{ duration: durations.short, ease: easings.smooth }}
+                className="shrink-0"
+              >
+                <BrandMark brand={brand} />
+              </motion.div>
+            ) : (
+              <motion.span
+                key="empty-brand"
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 0.28 }}
+                className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-white"
+              >
+                {detectedLabel}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
-
-        {showFooter ? (
-          <div className="mt-auto flex items-end justify-between gap-5 pt-4">
-            <div className="min-w-0 flex-1">
-              <p className="mb-1 text-[0.62rem] font-medium uppercase tracking-[0.16em] text-white/55">
-                {holderLabel}
-              </p>
-              <div className={cn("relative min-w-0", copies && "pr-7")}>
-                <p
-                  className={cn(
-                    "truncate text-[0.92rem] font-medium uppercase tracking-wide",
-                    holderText ? "text-white" : "text-white/35"
-                  )}
-                  title={holderText || undefined}
-                >
-                  {holderText || holderPlaceholder}
-                </p>
-                {copies ? (
-                  <span className="absolute -right-1 top-1/2 -translate-y-1/2">{copies.holder}</span>
-                ) : null}
-              </div>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="mb-1 text-[0.62rem] font-medium uppercase tracking-[0.16em] text-white/55">
-                {expiryLabel}
-              </p>
-              <div className={cn("relative whitespace-nowrap", copies && "pr-7")}>
-                <p
-                  className={cn(
-                    "font-mono text-[0.92rem] tabular-nums tracking-wider",
-                    expiry ? "text-white" : "text-white/35"
-                  )}
-                >
-                  {expiry || expiryPlaceholder}
-                </p>
-                {copies ? (
-                  <span className="absolute -right-1 top-1/2 -translate-y-1/2">{copies.expiry}</span>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
+
+      <div className={cn("relative min-w-0", showFooter ? "mt-auto" : "my-auto", copies && "sm:pr-7")}>
+        <NumberGroups number={number} brand={brand} color={theme.number} muted={theme.muted} />
+        {copies?.number}
+      </div>
+
+      {showFooter ? (
+        <div className="mt-auto flex items-end justify-between gap-3 pt-3 sm:gap-5 sm:pt-4">
+          <div className="min-w-0 flex-1">
+            <p className="mb-1 text-[0.625rem] font-medium uppercase tracking-[0.16em] text-white/55">
+              {holderLabel}
+            </p>
+            <div className={cn("relative min-w-0", copies && "sm:pr-7")}>
+              <p
+                className={cn(
+                  "truncate text-sm font-medium uppercase tracking-wide",
+                  holderText ? "text-white" : "text-white/35"
+                )}
+                title={holderText || undefined}
+              >
+                {holderText || holderPlaceholder}
+              </p>
+              {copies?.holder}
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="mb-1 text-[0.625rem] font-medium uppercase tracking-[0.16em] text-white/55">
+              {expiryLabel}
+            </p>
+            <div className={cn("relative whitespace-nowrap", copies && "sm:pr-7")}>
+              <p
+                className={cn(
+                  "font-mono text-sm tabular-nums tracking-wider",
+                  expiry ? "text-white" : "text-white/35"
+                )}
+              >
+                {expiry || expiryPlaceholder}
+              </p>
+              {copies?.expiry}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </CardFaceShell>
   );
 
   const back = (
-    <CardFaceShell theme={theme}>
-      <CardSheen reduceMotion={reduceMotion} />
-      <div className="relative z-10 flex h-full flex-col">
-        <div className="-mx-5 mt-1 h-11 bg-black/85 shadow-inner" aria-hidden />
-        <div className="mt-6 flex items-stretch gap-3">
-          <div
-            className="h-12 flex-1 rounded-sm bg-gradient-to-r from-white/92 via-white/78 to-white/88"
-            aria-hidden
-          />
-          <div className="flex min-w-[6rem] items-center justify-between gap-2 rounded-md bg-white px-2.5 py-1.5">
-            <div className="text-left">
-              <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                CVV
-              </p>
-              <p className="font-mono text-base font-semibold tabular-nums tracking-[0.18em] text-neutral-900">
-                {cvv || "•••"}
-              </p>
-            </div>
-            {copyable && copyLabels ? (
-              <span onClick={stopCardGesture} onKeyDown={stopCardGesture}>
-                <CopyButton
-                  value={cvv}
-                  label={copyLabels.cvv}
-                  className="text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900"
-                />
-              </span>
-            ) : null}
+    <CardFaceShell theme={theme} reduceMotion={reduceMotion}>
+      <div className="-mx-[1.15rem] mt-1 h-9 bg-black/85 shadow-inner sm:-mx-5 sm:h-11" aria-hidden />
+      <div className="mt-5 flex items-stretch gap-2 sm:mt-6 sm:gap-3">
+        <div
+          className="h-10 flex-1 rounded-sm bg-gradient-to-r from-white/92 via-white/78 to-white/88 sm:h-12"
+          aria-hidden
+        />
+        <div className="flex min-w-[5.5rem] items-center justify-between gap-1 rounded-md bg-white px-2 py-1.5 sm:min-w-[6rem] sm:gap-2 sm:px-2.5">
+          <div className="text-left">
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+              CVV
+            </p>
+            <p className="font-mono text-sm font-semibold tabular-nums tracking-[0.18em] text-neutral-900 sm:text-base">
+              {cvv || "•••"}
+            </p>
           </div>
+          {copyable && copyLabels ? (
+            <span
+              onClick={stopCardGesture}
+              onKeyDown={stopCardGesture}
+              className="hidden sm:block"
+            >
+              <CopyButton
+                value={cvv}
+                label={copyLabels.cvv}
+                className="text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900"
+              />
+            </span>
+          ) : null}
         </div>
-        <p className="mt-auto text-[0.65rem] uppercase tracking-[0.18em] text-white/40">
-          {detectedLabel}
-        </p>
       </div>
+      <p className="mt-auto text-[0.65rem] uppercase tracking-[0.18em] text-white/40">
+        {detectedLabel}
+      </p>
     </CardFaceShell>
   );
 
@@ -524,7 +510,7 @@ export const CreditCardVisual = ({
         style={{ background: theme.glow }}
       />
       <div
-        className="[perspective:1800px]"
+        className="touch-pan-y [perspective:1800px]"
         onPointerMove={handlePointerMove}
         onPointerLeave={resetTilt}
       >
@@ -590,7 +576,7 @@ export const CreditCardVisual = ({
             {actionLabel}
           </button>
           {flipHint ? (
-            <p className="text-center text-xs text-muted-foreground leading-relaxed">
+            <p className="hidden text-center text-xs text-muted-foreground leading-relaxed sm:block">
               {flipHint}
             </p>
           ) : null}
@@ -613,10 +599,10 @@ export const CreditCardSplit = ({
   form: ReactNode;
   preview: ReactNode;
 }) => (
-  <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20.5rem,23.5rem)] lg:gap-8">
-    <div className="order-2 lg:order-1">{form}</div>
-    <div className="order-1 flex justify-center lg:sticky lg:top-24 lg:order-2 lg:justify-end">
+  <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(20rem,23.5rem)] lg:items-start lg:gap-8">
+    <div className="order-1 mx-auto w-full max-w-sm lg:order-2 lg:mx-0 lg:max-w-none lg:sticky lg:top-24">
       {preview}
     </div>
+    <div className="order-2 min-w-0 lg:order-1">{form}</div>
   </div>
 );

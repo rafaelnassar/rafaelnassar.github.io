@@ -99,7 +99,9 @@ export const CreditCardValidator = () => {
               </Field>
 
               <ToolActions>
-                <Button type="submit">{tx.tools.validate}</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  {tx.tools.validate}
+                </Button>
               </ToolActions>
 
               {message === "empty" ? (
