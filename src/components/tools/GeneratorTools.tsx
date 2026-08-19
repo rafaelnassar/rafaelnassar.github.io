@@ -10,8 +10,10 @@ import {
   fieldClassName,
   toolStackClassName,
 } from "@/components/tools/shared";
+import { CreditCardSplit, CreditCardVisual } from "@/components/tools/CreditCardVisual";
 import {
   CREDIT_CARD_BRANDS,
+  formatCardNumber,
   generateCreditCard,
   type CreditCardBrand,
 } from "@/lib/tools/credit-card";
@@ -45,40 +47,85 @@ export const CreditCardGenerator = () => {
   return (
     <ToolPanel>
       <form className={toolStackClassName} onSubmit={handleGenerate}>
-        <Field id="card-brand" label={tx.tools.cardBrand}>
-          <SelectInput
-            id="card-brand"
-            value={brand}
-            onChange={(event) => setBrand(event.target.value as CreditCardBrand)}
-          >
-            {CREDIT_CARD_BRANDS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </SelectInput>
-        </Field>
+        <CreditCardSplit
+          form={
+            <div className={toolStackClassName}>
+              <Field id="card-brand" label={tx.tools.cardBrand}>
+                <SelectInput
+                  id="card-brand"
+                  value={brand}
+                  onChange={(event) => setBrand(event.target.value as CreditCardBrand)}
+                >
+                  {CREDIT_CARD_BRANDS.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label}
+                    </option>
+                  ))}
+                </SelectInput>
+              </Field>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ResultInline label={tx.tools.cardNumber} value={card.formatted} />
-          <ResultInline label={tx.tools.cardExpiry} value={card.expiry} />
-          <ResultInline label={tx.tools.cardCvv} value={card.cvv} />
-        </div>
+              <div className="grid gap-3">
+                <ResultInline label={tx.tools.cardNumber} value={card.formatted} nowrap />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <ResultInline label={tx.tools.cardExpiry} value={card.expiry} nowrap />
+                  <ResultInline label={tx.tools.cardCvv} value={card.cvv} nowrap />
+                </div>
+                <ResultInline
+                  label={tx.tools.cardHolder}
+                  value={card.holder}
+                  mono={false}
+                  nowrap
+                />
+              </div>
 
-        <QaDisclaimer text={tx.tools.cardDisclaimer} />
+              <QaDisclaimer text={tx.tools.cardDisclaimer} />
 
-        <ToolActions className="justify-between">
-          <CheckRow
-            id="card-format"
-            label={tx.tools.formatted}
-            checked={formatted}
-            onChange={(checked) => {
-              setFormatted(checked);
-              setCard(generateCreditCard(brand, checked));
-            }}
-          />
-          <Button type="submit">{tx.tools.generate}</Button>
-        </ToolActions>
+              <ToolActions className="justify-between">
+                <CheckRow
+                  id="card-format"
+                  label={tx.tools.formatted}
+                  checked={formatted}
+                  onChange={(checked) => {
+                    setFormatted(checked);
+                    setCard((current) => ({
+                      ...current,
+                      formatted: checked
+                        ? formatCardNumber(current.number, current.brand)
+                        : current.number,
+                    }));
+                  }}
+                />
+                <Button type="submit">{tx.tools.generate}</Button>
+              </ToolActions>
+            </div>
+          }
+          preview={
+            <CreditCardVisual
+              brand={card.brand}
+              number={card.number}
+              holder={card.holder}
+              expiry={card.expiry}
+              cvv={card.cvv}
+              interactive
+              copyable
+              revealKey={card.number}
+              holderLabel={tx.tools.cardHolder}
+              expiryLabel={tx.tools.cardExpiry}
+              holderPlaceholder={tx.tools.cardHolderPlaceholder}
+              expiryPlaceholder={tx.tools.cardExpiryPlaceholder}
+              previewLabel={tx.tools.cardPreview}
+              flipHint={tx.tools.cardFlipHint}
+              flipToBack={tx.tools.cardFlipToBack}
+              flipToFront={tx.tools.cardFlipToFront}
+              copyLabels={{
+                number: tx.tools.cardCopy.replace("{field}", tx.tools.cardNumber),
+                holder: tx.tools.cardCopy.replace("{field}", tx.tools.cardHolder),
+                expiry: tx.tools.cardCopy.replace("{field}", tx.tools.cardExpiry),
+                cvv: tx.tools.cardCopy.replace("{field}", tx.tools.cardCvv),
+              }}
+            />
+          }
+        />
       </form>
     </ToolPanel>
   );

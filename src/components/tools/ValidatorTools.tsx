@@ -1,20 +1,21 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  ResultInline,
-  SegmentedControl,
-  SelectInput,
   StatusBanner,
   ToolActions,
   ToolPanel,
   fieldClassName,
   toolStackClassName,
 } from "@/components/tools/shared";
+import { CreditCardSplit, CreditCardVisual } from "@/components/tools/CreditCardVisual";
 import {
   CREDIT_CARD_BRANDS,
+  detectCardBrand,
+  formatCardNumberInput,
+  getBrandInfo,
+  normalizeCardNumber,
   validateCreditCard,
-  type CreditCardBrand,
 } from "@/lib/tools/credit-card";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
@@ -22,68 +23,111 @@ import { t } from "@/data/translations";
 export const CreditCardValidator = () => {
   const { lang } = useLang();
   const tx = t(lang);
-  const [brand, setBrand] = useState<CreditCardBrand>("visa");
-  const [value, setValue] = useState("");
-  const [message, setMessage] = useState<"idle" | "empty" | "valid" | "invalid">("idle");
+  const [number, setNumber] = useState("");
+  const [submittedEmpty, setSubmittedEmpty] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const digits = normalizeCardNumber(number);
+  const detected = detectCardBrand(digits);
+  const expectedLength = getBrandInfo(detected)?.length;
+
+  const result = useMemo(
+    () => (digits ? validateCreditCard(number) : null),
+    [digits, number]
+  );
+
+  const isComplete = expectedLength
+    ? digits.length >= expectedLength
+    : digits.length >= 13;
+
+  const message = submittedEmpty
+    ? "empty"
+    : !digits
+      ? "idle"
+      : !isComplete && !submitted
+        ? "idle"
+        : result?.valid
+          ? "valid"
+          : "invalid";
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (!value.trim()) {
-      setMessage("empty");
+    if (!digits) {
+      setSubmittedEmpty(true);
+      setSubmitted(false);
       return;
     }
-    const result = validateCreditCard(value, brand);
-    setMessage(result.valid ? "valid" : "invalid");
+    setSubmittedEmpty(false);
+    setSubmitted(true);
   };
+
+  const validLabel = tx.tools.cardValid.replace(
+    "{brand}",
+    CREDIT_CARD_BRANDS.find((item) => item.id === result?.brand)?.label ??
+      tx.tools.cardBrand
+  );
 
   return (
     <ToolPanel>
       <form className={toolStackClassName} onSubmit={handleSubmit}>
-        <Field id="validate-brand" label={tx.tools.cardBrand}>
-          <SelectInput
-            id="validate-brand"
-            value={brand}
-            onChange={(event) => {
-              setBrand(event.target.value as CreditCardBrand);
-              setMessage("idle");
-            }}
-          >
-            {CREDIT_CARD_BRANDS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </SelectInput>
-        </Field>
+        <CreditCardSplit
+          form={
+            <div className={toolStackClassName}>
+              <Field id="validate-number" label={tx.tools.cardNumber}>
+                <input
+                  id="validate-number"
+                  value={number}
+                  onChange={(event) => {
+                    setNumber(
+                      formatCardNumberInput(
+                        event.target.value,
+                        detectCardBrand(event.target.value)
+                      )
+                    );
+                    setSubmittedEmpty(false);
+                    setSubmitted(false);
+                  }}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className={fieldClassName}
+                  aria-invalid={message === "invalid" || message === "empty"}
+                  aria-describedby={
+                    message === "idle" ? undefined : "validate-card-status"
+                  }
+                />
+              </Field>
 
-        <Field id="validate-number" label={tx.tools.cardNumber}>
-          <input
-            id="validate-number"
-            value={value}
-            onChange={(event) => {
-              setValue(event.target.value);
-              setMessage("idle");
-            }}
-            inputMode="numeric"
-            autoComplete="off"
-            className={fieldClassName}
-            aria-invalid={message === "invalid" || message === "empty"}
-          />
-        </Field>
+              <ToolActions>
+                <Button type="submit">{tx.tools.validate}</Button>
+              </ToolActions>
 
-        <ToolActions>
-          <Button type="submit">{tx.tools.validate}</Button>
-        </ToolActions>
-
-        {message === "empty" ? (
-          <StatusBanner tone="error">{tx.tools.cardEmpty}</StatusBanner>
-        ) : null}
-        {message === "valid" ? (
-          <StatusBanner tone="success">{tx.tools.cardValid}</StatusBanner>
-        ) : null}
-        {message === "invalid" ? (
-          <StatusBanner tone="error">{tx.tools.cardInvalid}</StatusBanner>
-        ) : null}
+              {message === "empty" ? (
+                <div id="validate-card-status">
+                  <StatusBanner tone="error">{tx.tools.cardEmpty}</StatusBanner>
+                </div>
+              ) : null}
+              {message === "valid" ? (
+                <div id="validate-card-status">
+                  <StatusBanner tone="success">{validLabel}</StatusBanner>
+                </div>
+              ) : null}
+              {message === "invalid" ? (
+                <div id="validate-card-status">
+                  <StatusBanner tone="error">{tx.tools.cardInvalid}</StatusBanner>
+                </div>
+              ) : null}
+            </div>
+          }
+          preview={
+            <CreditCardVisual
+              brand={detected}
+              number={digits}
+              details="number"
+              previewLabel={tx.tools.cardPreview}
+            />
+          }
+        />
       </form>
     </ToolPanel>
   );

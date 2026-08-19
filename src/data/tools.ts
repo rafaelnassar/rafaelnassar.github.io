@@ -160,8 +160,8 @@ export const tools: LabTool[] = [
     icon: CreditCard,
     title: { pt: "Validador de cartão", en: "Credit card validator" },
     summary: {
-      pt: "Verifica número por bandeira com algoritmo de Luhn — só validação estrutural.",
-      en: "Checks number by brand with the Luhn algorithm — structural validation only.",
+      pt: "Cole o número — a bandeira é detectada na hora, só validação estrutural.",
+      en: "Paste the number — the brand is detected as you type. Structural validation only.",
     },
     tags: ["Pagamentos", "Validação"],
   },

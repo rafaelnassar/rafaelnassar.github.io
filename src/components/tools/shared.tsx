@@ -110,12 +110,22 @@ interface CopyButtonProps {
   value: string;
   className?: string;
   size?: "icon" | "pill";
+  label?: string;
+  tone?: "default" | "onDark";
 }
 
-export const CopyButton = ({ value, className, size = "icon" }: CopyButtonProps) => {
+export const CopyButton = ({
+  value,
+  className,
+  size = "icon",
+  label,
+  tone = "default",
+}: CopyButtonProps) => {
   const { lang } = useLang();
   const tx = t(lang);
   const [copied, setCopied] = useState(false);
+  const idleLabel = label ?? tx.labs.copy;
+  const doneLabel = tx.labs.copied;
 
   const handleCopy = async () => {
     if (!value) return;
@@ -139,10 +149,12 @@ export const CopyButton = ({ value, className, size = "icon" }: CopyButtonProps)
               "gap-1.5 rounded-full px-3 h-9 text-xs font-medium",
               "border border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
             ),
+        tone === "onDark" &&
+          "text-white/80 hover:text-white hover:bg-white/15 focus-visible:ring-white/70 focus-visible:ring-offset-0",
         focusRing,
         className
       )}
-      aria-label={copied ? tx.labs.copied : tx.labs.copy}
+      aria-label={copied ? doneLabel : idleLabel}
     >
       {copied ? (
         <Check className="size-3.5" aria-hidden />
@@ -150,10 +162,10 @@ export const CopyButton = ({ value, className, size = "icon" }: CopyButtonProps)
         <Copy className="size-3.5" aria-hidden />
       )}
       {size === "pill" ? (
-        <span aria-hidden>{copied ? tx.labs.copied : tx.labs.copy}</span>
+        <span aria-hidden>{copied ? doneLabel : idleLabel}</span>
       ) : null}
       <span className="sr-only" aria-live="polite">
-        {copied ? tx.labs.copied : ""}
+        {copied ? doneLabel : ""}
       </span>
     </button>
   );
@@ -163,6 +175,7 @@ interface ResultInlineProps {
   label?: string;
   value: string;
   mono?: boolean;
+  nowrap?: boolean;
   footer?: ReactNode;
   className?: string;
 }
@@ -171,6 +184,7 @@ export const ResultInline = ({
   label,
   value,
   mono = true,
+  nowrap = false,
   footer,
   className,
 }: ResultInlineProps) => (
@@ -178,10 +192,11 @@ export const ResultInline = ({
     {label ? (
       <p className="text-sm font-medium tracking-tight">{label}</p>
     ) : null}
-    <div className="relative flex min-h-10 items-center rounded-xl border border-input bg-background">
+    <div className="relative flex min-h-10 items-center overflow-hidden rounded-xl border border-input bg-background">
       <p
         className={cn(
-          "flex-1 min-w-0 px-3 py-0 pr-10 text-sm break-all leading-normal",
+          "flex-1 min-w-0 px-3 py-0 pr-10 text-sm leading-normal",
+          nowrap ? "whitespace-nowrap overflow-x-auto" : "break-all",
           mono && "font-mono"
         )}
       >
