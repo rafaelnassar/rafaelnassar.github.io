@@ -233,6 +233,21 @@ test.describe("Labs", () => {
     await expect(page.getByRole("heading", { name: "Gerador de veículos" })).toBeVisible();
   });
 
+  test("cabe no viewport mobile sem overflow horizontal", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/labs/ferramentas");
+    await expect(page.getByRole("heading", { name: /Ferramentas/ })).toBeVisible();
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await page.getByRole("button", { name: /Abrir menu|Open menu/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Scripts" })).toBeVisible();
+  });
+
   test("gerador de senha e gerador de CPF funcionam no browser", async ({ page }) => {
     await page.goto("/labs/ferramentas/gerador-de-senha");
     await expect(page.getByRole("heading", { name: /Gerador de senha/ })).toBeVisible();

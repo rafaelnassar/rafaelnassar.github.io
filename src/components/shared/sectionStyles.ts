@@ -19,4 +19,5 @@ export const sectionProseClassName = 'max-w-2xl mx-auto'
 export const labsPageClassName = 'flex flex-1 flex-col py-8 sm:py-10'
 
 /** Coluna única do Labs — heading e conteúdo compartilham a mesma medida. */
-export const labsColumnClassName = 'mx-auto flex w-full max-w-3xl flex-1 flex-col'
+export const labsColumnClassName =
+  'mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col'

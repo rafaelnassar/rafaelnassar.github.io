@@ -23,7 +23,7 @@ export const LabsPage = ({
     className={cn(labsPageClassName, className)}
     aria-labelledby={labelledBy}
   >
-    <div className="container mx-auto flex flex-1 flex-col px-6">
+    <div className="container mx-auto flex min-w-0 flex-1 flex-col px-4 sm:px-6">
       <div className={labsColumnClassName}>{children}</div>
     </div>
   </Comp>

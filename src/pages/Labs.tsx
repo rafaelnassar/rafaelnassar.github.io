@@ -114,7 +114,7 @@ const LabsCatalog = ({ kind }: LabsCatalogProps) => {
 
         {kind === "ferramentas" ? (
           <div className="space-y-6">
-            <div className="flex justify-center">
+            <div className="flex w-full justify-center">
               <SegmentedControl
                 legend={tx.labs.toolsCategoryLegend}
                 value={category}

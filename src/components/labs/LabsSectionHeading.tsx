@@ -32,7 +32,7 @@ export const LabsSectionHeading = ({
         className="text-3xl sm:text-4xl font-medium tracking-tight mb-3 text-balance"
       >
         {title}{" "}
-        <span className="font-serif italic text-muted-foreground whitespace-nowrap">
+        <span className="font-serif italic text-muted-foreground">
           {italic}
         </span>
       </h1>

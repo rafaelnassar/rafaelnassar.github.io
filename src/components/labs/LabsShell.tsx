@@ -128,7 +128,7 @@ export const LabsShell = ({ children }: LabsShellProps) => {
   const closeMenu = useCallback(() => setIsMobileMenuOpen(false), []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <a
         href="#labs-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:bg-foreground focus:text-background focus:text-sm focus:font-medium focus:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -137,11 +137,12 @@ export const LabsShell = ({ children }: LabsShellProps) => {
       </a>
 
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4">
+        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3 min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4">
           <Link
             to="/"
-            className={cn("rounded-md shrink-0 min-w-0 cursor-pointer justify-self-start", focusRing)}
+            className={cn("rounded-md shrink-0 cursor-pointer justify-self-start", focusRing)}
             title={tx.labs.backHome}
+            aria-label={tx.labs.backHome}
           >
             <Brand variant="labs" />
           </Link>
@@ -190,7 +191,7 @@ export const LabsShell = ({ children }: LabsShellProps) => {
             <ThemeToggle />
           </div>
 
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-2 shrink-0">
             <LanguageToggle />
             <ThemeToggle />
             <button
@@ -198,7 +199,7 @@ export const LabsShell = ({ children }: LabsShellProps) => {
               type="button"
               onClick={() => setIsMobileMenuOpen((value) => !value)}
               className={cn(
-                "p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors duration-200 cursor-pointer",
+                "inline-flex items-center justify-center size-11 -mr-2 hover:bg-secondary rounded-lg transition-colors duration-200 cursor-pointer",
                 focusRing
               )}
               aria-label={isMobileMenuOpen ? tx.nav.menuClose : tx.nav.menuOpen}
@@ -229,7 +230,7 @@ export const LabsShell = ({ children }: LabsShellProps) => {
             >
               <nav
                 aria-label={tx.labs.mobileNav}
-                className="container mx-auto px-6 py-4 flex flex-col gap-1"
+                className="container mx-auto px-4 sm:px-6 py-4 flex flex-col gap-1"
               >
                 {navLinks.map((link) => (
                   <NavLink
@@ -254,7 +255,7 @@ export const LabsShell = ({ children }: LabsShellProps) => {
         </AnimatePresence>
       </header>
 
-      <main id="labs-content" className="flex flex-1 flex-col min-h-0">
+      <main id="labs-content" className="flex flex-1 flex-col min-h-0 min-w-0">
         {children}
       </main>
 

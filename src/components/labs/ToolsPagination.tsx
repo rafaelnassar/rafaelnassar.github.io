@@ -30,7 +30,7 @@ export const ToolsPagination = ({ currentPage, category }: ToolsPaginationProps)
   return (
     <nav
       aria-label={tx.labs.toolsPagination}
-      className="flex items-center justify-center gap-2 pt-2"
+      className="flex flex-wrap items-center justify-center gap-2 pt-2"
     >
       <Link
         to={pageHref(Math.max(1, currentPage - 1), category)}

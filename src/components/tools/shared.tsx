@@ -362,31 +362,45 @@ export const SegmentedControl = <T extends string>({
   onChange: (value: T) => void;
   legend?: string;
   fullWidth?: boolean;
-}) => (
-  <fieldset
-    className={cn(
-      "flex flex-wrap justify-center gap-1 p-1 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border",
-      fullWidth ? "w-full" : "w-fit max-w-full"
-    )}
-  >
-    {legend ? <legend className="sr-only">{legend}</legend> : null}
-    {options.map((option) => (
-      <button
-        key={option.value}
-        type="button"
-        onClick={() => onChange(option.value)}
-        aria-pressed={value === option.value}
-        className={cn(
-          "px-3 py-2 text-sm font-medium rounded-full cursor-pointer transition-colors duration-200 whitespace-nowrap",
-          fullWidth && "flex-1 min-w-0 text-center",
-          focusRing,
-          value === option.value
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        {option.label}
-      </button>
-    ))}
-  </fieldset>
-);
+}) => {
+  const dense = options.length >= 4;
+
+  return (
+    <fieldset
+      className={cn(
+        "gap-1 p-1 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border",
+        dense
+          ? cn(
+              "grid w-full grid-cols-2",
+              "sm:flex sm:flex-wrap sm:justify-center",
+              fullWidth ? "sm:w-full" : "sm:w-fit sm:max-w-full"
+            )
+          : cn(
+              "flex flex-wrap justify-center",
+              fullWidth ? "w-full" : "w-fit max-w-full"
+            )
+      )}
+    >
+      {legend ? <legend className="sr-only">{legend}</legend> : null}
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          aria-pressed={value === option.value}
+          className={cn(
+            "min-h-10 px-3 py-2 text-sm font-medium rounded-full cursor-pointer transition-colors duration-200 whitespace-nowrap text-center",
+            dense && "w-full min-w-0 sm:w-auto",
+            fullWidth && "sm:flex-1 sm:min-w-0",
+            focusRing,
+            value === option.value
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </fieldset>
+  );
+};
