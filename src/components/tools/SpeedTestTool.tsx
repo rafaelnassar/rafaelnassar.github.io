@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDownToLine, ArrowUpFromLine, Check, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
   type SpeedProgress,
   type SpeedResult,
 } from "@/lib/tools/speed-test";
+import { durations, easings } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import { t } from "@/data/translations";
@@ -173,6 +174,10 @@ export const SpeedTestTool = () => {
   );
   const display = formatGauge(shown, gaugeUnit);
   const empty = display === "—";
+  const finished = phase === "done";
+  const stageMotion = reduceMotion
+    ? { duration: 0 }
+    : { duration: durations.short, ease: easings.swift };
 
   const phaseCopy =
     phase === "ping"
@@ -227,93 +232,106 @@ export const SpeedTestTool = () => {
     <ToolPanel className="hover:shadow-none hover:border-border">
       <div className={toolStackClassName}>
         <div
-          className="rounded-2xl border border-border bg-secondary/20 px-4 py-8 sm:px-6 sm:py-10"
-          aria-busy={running}
+          className={cn(
+            "grid overflow-hidden motion-reduce:transition-none",
+            finished
+              ? "pointer-events-none grid-rows-[0fr] opacity-0 duration-200 ease-in"
+              : "grid-rows-[1fr] opacity-100 duration-300 ease-out"
+          )}
+          style={{
+            transitionProperty: reduceMotion ? "none" : "grid-template-rows, opacity",
+          }}
+          aria-hidden={finished}
         >
-          <div className="flex flex-col items-center text-center">
-            <p
-              className={cn(
-                "text-4xl sm:text-6xl font-medium tabular-nums tracking-tighter leading-none",
-                empty && "text-muted-foreground"
-              )}
-              aria-hidden
+          <div className="min-h-0 overflow-hidden">
+            <div
+              className="rounded-2xl border border-border bg-secondary/20 px-4 py-8 sm:px-6 sm:py-10"
+              aria-busy={running}
             >
-              {display}
-            </p>
-            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              {gaugeUnit === "ms" ? tx.tools.speedMs : tx.tools.speedMbps}
-            </p>
-          </div>
-
-          {resultSummary ? <p className="sr-only">{resultSummary}</p> : null}
-
-          <p
-            className="mt-5 text-center text-sm text-muted-foreground min-h-5"
-            role="status"
-            aria-atomic="true"
-          >
-            {phaseCopy}
-          </p>
-
-          <ol
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-8"
-            aria-label={tx.tools.speedTesting}
-          >
-            {STEPS.map((item, index) => {
-              const currentIndex = STEPS.indexOf(
-                phase === "done" ? (uploadFailed ? "download" : "upload") : phase
-              );
-              const failed = uploadFailed && item === "upload";
-              const done = !failed && (phase === "done" || (running && index < currentIndex));
-              const active = running && item === phase;
-              return (
-                <li
-                  key={item}
+              <div className="flex flex-col items-center text-center">
+                <p
                   className={cn(
-                    "flex items-center gap-1.5 text-xs font-medium tracking-wide",
-                    active && "text-foreground",
-                    done && !active && "text-foreground/80",
-                    failed && "text-destructive",
-                    !active && !done && !failed && "text-muted-foreground"
+                    "text-4xl sm:text-6xl font-medium tabular-nums tracking-tighter leading-none",
+                    empty && "text-muted-foreground"
                   )}
+                  aria-hidden
                 >
-                  {done ? (
-                    <Check className="size-3.5" aria-hidden />
-                  ) : (
-                    <span
-                      className={cn(
-                        "size-1.5 rounded-full",
-                        active && "bg-foreground motion-reduce:animate-none animate-pulse",
-                        !active && "bg-border"
-                      )}
-                      aria-hidden
-                    />
-                  )}
-                  {stepLabel(item)}
-                </li>
-              );
-            })}
-          </ol>
+                  {display}
+                </p>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  {gaugeUnit === "ms" ? tx.tools.speedMs : tx.tools.speedMbps}
+                </p>
+              </div>
 
-          <ToolActions className="justify-center pt-8">
-            {running ? (
-              <Button type="button" variant="outline" className="min-h-11" onClick={cancel}>
-                {tx.tools.speedCancel}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size={phase === "idle" ? "lg" : "default"}
-                className="min-h-11"
-                onClick={() => void start()}
+              <p
+                className="mt-5 min-h-5 text-center text-sm text-muted-foreground"
+                role="status"
+                aria-atomic="true"
               >
-                {phase === "done" || phase === "error" ? tx.tools.speedAgain : tx.tools.speedStart}
-              </Button>
-            )}
-          </ToolActions>
+                {phaseCopy}
+              </p>
+
+              <ol
+                className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-8"
+                aria-label={tx.tools.speedTesting}
+              >
+                {STEPS.map((item, index) => {
+                  const currentIndex = STEPS.indexOf(
+                    finished ? (uploadFailed ? "download" : "upload") : phase
+                  );
+                  const failed = uploadFailed && item === "upload";
+                  const done = !failed && (finished || (running && index < currentIndex));
+                  const active = running && item === phase;
+                  return (
+                    <li
+                      key={item}
+                      className={cn(
+                        "flex items-center gap-1.5 text-xs font-medium tracking-wide",
+                        active && "text-foreground",
+                        done && !active && "text-foreground/80",
+                        failed && "text-destructive",
+                        !active && !done && !failed && "text-muted-foreground"
+                      )}
+                    >
+                      {done ? (
+                        <Check className="size-3.5" aria-hidden />
+                      ) : (
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            active && "bg-foreground motion-reduce:animate-none animate-pulse",
+                            !active && "bg-border"
+                          )}
+                          aria-hidden
+                        />
+                      )}
+                      {stepLabel(item)}
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <ToolActions className="justify-center pt-8">
+                {running ? (
+                  <Button type="button" variant="outline" className="min-h-11" onClick={cancel}>
+                    {tx.tools.speedCancel}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    size={phase === "idle" ? "lg" : "default"}
+                    className="min-h-11"
+                    onClick={() => void start()}
+                  >
+                    {phase === "error" ? tx.tools.speedAgain : tx.tools.speedStart}
+                  </Button>
+                )}
+              </ToolActions>
+            </div>
+          </div>
         </div>
 
-        <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid min-w-0 grid-cols-3 items-stretch gap-2 sm:gap-3">
           {STEPS.map((item) => {
             const metric = metricValue(item);
             const filled = metric.value !== "—";
@@ -323,26 +341,59 @@ export const SpeedTestTool = () => {
               <div
                 key={item}
                 className={cn(
-                  "min-w-0 rounded-xl border bg-background px-2 py-3 sm:px-3 sm:py-3.5 transition-colors duration-300",
+                  "flex h-full min-w-0 flex-col items-center justify-center text-center rounded-xl border bg-background px-2 py-3 sm:px-3",
+                  finished ? "border-foreground/15 py-4 sm:py-5" : "sm:py-3.5",
                   active && "border-foreground/25",
-                  filled && !active && "border-border",
+                  filled && !active && !finished && "border-border",
                   !filled && !active && "border-border opacity-55"
                 )}
               >
-                <p className="mb-1.5 flex min-w-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground sm:gap-1.5 sm:text-[11px] sm:tracking-[0.14em]">
+                <p className="flex h-4 max-w-full items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground sm:h-5 sm:gap-1.5 sm:text-[11px]">
                   <Icon className="size-3 shrink-0" aria-hidden />
-                  <span className="min-w-0 truncate">{stepLabel(item)}</span>
+                  <span className="whitespace-nowrap">{stepLabel(item)}</span>
                 </p>
-                <p className="min-w-0 text-base font-medium tabular-nums tracking-tight sm:text-2xl">
+                <p
+                  className={cn(
+                    "mt-2 font-medium tabular-nums tracking-tight leading-none",
+                    finished ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
+                  )}
+                >
                   {metric.value}
-                  <span className="ml-1 text-[11px] font-normal text-muted-foreground">
-                    {metric.unit}
-                  </span>
+                </p>
+                <p className="mt-1.5 text-[11px] leading-none text-muted-foreground">
+                  {metric.unit}
                 </p>
               </div>
             );
           })}
         </div>
+
+        <AnimatePresence initial={false}>
+          {finished ? (
+            <motion.div
+              key="speed-again"
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 6 }}
+              transition={{
+                ...stageMotion,
+                delay: reduceMotion ? 0 : durations.micro,
+              }}
+            >
+              <ToolActions className="justify-center pt-2">
+                <Button type="button" className="min-h-11" onClick={() => void start()}>
+                  {tx.tools.speedAgain}
+                </Button>
+              </ToolActions>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        {finished && resultSummary ? (
+          <p className="sr-only" aria-live="polite">
+            {phaseCopy}. {resultSummary}
+          </p>
+        ) : null}
 
         {phase === "error" ? (
           <StatusBanner tone="error">{tx.tools.speedError}</StatusBanner>
